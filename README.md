@@ -4,8 +4,10 @@
 把 `dsh一键启动.exe` 复制过去，**双击**即可自动完成安装并启动，全程无需打开命令行、
 无需管理员权限、不会影响电脑上已有的 Node.js。
 
-启动器会默认安装 **8 个社区插件**（at-file、genui、visualize、automation、better-sidebar、
-mnemon、vision-toolkit、market），GitHub 源直连不可达时自动切换国内代理，装好即可用。
+启动器会默认安装 **9 个社区插件**（at-file、genui、visualize、automation、better-sidebar、
+mnemon、vision-toolkit、market、yuyi-御驿），GitHub 源直连不可达时自动切换国内代理，装好即可用。
+yuyi 需现场构建，并自动配好含 17 个 `yuyi_*` 工具的会话 preset（standard-yuyi，设为默认）；
+检测到用户手动/开发安装的 yuyi（依赖指向启动器目录之外）会尊重现状跳过，不替换。
 
 ## 文件说明
 
@@ -26,7 +28,7 @@ mnemon、vision-toolkit、market），GitHub 源直连不可达时自动切换�
 3. 首次运行会自动完成（约 5~10 分钟，视网速而定）：
    - 从国内镜像下载**便携版 Node.js**（约 35MB，只装在当前用户的 `%LOCALAPPDATA%\dsh-launcher` 下）；
    - 用国内 npm 镜像安装 `@deepseek-ai/dsh`；
-   - 安装 **8 个默认插件**（见下）；
+   - 安装 **9 个默认插件**（见下）；
    - 启动 `dsh web` 并**自动打开浏览器**界面（默认地址 http://127.0.0.1:3080）。
 4. 以后每次双击：几秒内即可启动，并自动检查 dsh 是否有新版本（每天最多一次）。
 
@@ -44,10 +46,14 @@ mnemon、vision-toolkit、market），GitHub 源直连不可达时自动切换�
 | dsh-mnemon | npm 源 | 记忆桥接 |
 | dsh-vision-toolkit | npm 源 | 视觉工具集 |
 | dsh-market | npm 源 | 插件市场（@dsh-market/plugin） |
+| dsh-yuyi | GitHub 源码 | 御驿跨会话通信（17 个 yuyi_* 工具 + Web 标签页；需现场构建） |
 
 - 安装方式：npm 源插件直接从国内镜像（npmmirror）安装；GitHub 源码插件下载仓库 zip
   （直连 codeload，失败自动尝试 `ghfast.top` / `gh-proxy.com` 等国内代理），自动装依赖、
   缺构建产物时自动构建，再注册进 web profile。
+- **yuyi 连接配置**：插件默认休眠，需配置 hub/token 才连接——网页「设置」里配置（推荐），
+  或环境变量 `YUYI_HUB` / `YUYI_TOKEN`，或 `~/.yuyi/env` 文件。装好后自动创建
+  `standard-yuyi` 会话 preset（内置 standard + yuyi 工具行）并设为默认。
 - 每次启动会检查是否齐全，缺了自动补装；已安装的跳过（秒过）。
 - 想卸载某个插件：命令行执行 `dsh plugin --profile web remove <包名>` 即可。
 

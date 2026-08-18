@@ -39,7 +39,7 @@ internal static class Program
 {
     // ---------- 常量 ----------
     private const string APP_NAME = "DeepSeek Harness (dsh) 一键启动器";
-    private const string LAUNCHER_VERSION = "1.2.0";
+    private const string LAUNCHER_VERSION = "1.3.0";
     private const int DEFAULT_PORT = 3080;
     private const string DEFAULT_REGISTRY = "https://registry.npmmirror.com";
     private const string NODE_MIRROR_NPMMIRROR = "https://registry.npmmirror.com/-/binary/node";
@@ -73,7 +73,7 @@ internal static class Program
         }
     }
 
-    /// <summary>默认安装的 8 个插件。</summary>
+    /// <summary>默认安装的 9 个插件（第 9 个 yuyi 需构建，且尊重用户手动/开发安装）。</summary>
     private static readonly PluginSpec[] DEFAULT_PLUGINS = new[]
     {
         new PluginSpec("dsh-at-file", "at-file", "dsh-at-file", false, "omdsh-dev/dsh-at-file/main"),
@@ -84,7 +84,11 @@ internal static class Program
         new PluginSpec("dsh-mnemon", "mnemon", "dsh-mnemon", true, "dsh-mnemon"),
         new PluginSpec("dsh-vision-toolkit", "vision-toolkit", "@anionex/dsh-vision-toolkit", true, "@anionex/dsh-vision-toolkit"),
         new PluginSpec("dsh-market", "market", "@dsh-market/plugin", true, "@dsh-market/plugin"),
+        new PluginSpec("dsh-yuyi", "yuyi(御驿)", "dsh-yuyi", false, "lomehong/dsh-yuyi/main"),
     };
+
+    /// <summary>yuyi 会话工具 preset 的 id（基于内置 standard 追加 dsh-yuyi/tools 行）。</summary>
+    private const string YUYI_PRESET_ID = "standard-yuyi";
 
     // ---------- 运行状态 ----------
     private static string _runtimeDir;   // %LOCALAPPDATA%\dsh-launcher
@@ -241,7 +245,7 @@ internal static class Program
     {
         Console.WriteLine("==============================================================");
         Console.WriteLine("  " + APP_NAME + "  v" + LAUNCHER_VERSION);
-        Console.WriteLine("  自动：便携版 Node.js -> dsh -> 默认插件(8个) -> 启动 dsh web -> 打开浏览器");
+        Console.WriteLine("  自动：便携版 Node.js -> dsh -> 默认插件(9个) -> 启动 dsh web -> 打开浏览器");
         Console.WriteLine("  运行目录: " + _runtimeDir);
         Console.WriteLine("==============================================================");
         Console.WriteLine();
@@ -498,7 +502,7 @@ internal static class Program
             PluginSpec spec = DEFAULT_PLUGINS[i];
             bool ready = spec.ViaNpm
                 ? ProfileHasPlugin(spec.PkgName)
-                : ProfileHasPlugin(spec.PkgName) && PluginDirReady(spec);
+                : ProfileHasPlugin(spec.PkgName) && (PluginDirReady(spec) || PluginIsExternalInstall(spec));
             if (ready && !force)
             {
                 Console.WriteLine("      [" + (i + 1) + "/" + DEFAULT_PLUGINS.Length + "] " + spec.Display + " 已安装。");
@@ -520,6 +524,12 @@ internal static class Program
         }
         // pnpm 的 install/add 可能清理 node_modules 里的未知 junction，最后再确保一次
         EnsurePeersJunction(Path.Combine(ProfileDir(), "node_modules"));
+        // yuyi 会话工具 preset：已装 yuyi 时，确保 standard-yuyi 存在并设为默认（幂等）
+        if (ProfileHasPlugin("dsh-yuyi"))
+        {
+            EnsureYuyiPreset();
+            PatchProfileDefaultPreset();
+        }
         Console.WriteLine("      插件检查完成：成功 " + installed + "，失败 " + failed + "。");
         return failed == 0 ? 0 : 1;
     }
@@ -531,6 +541,26 @@ internal static class Program
         return File.Exists(Path.Combine(target, ".dsh-ready"))
             && Directory.Exists(Path.Combine(target, "node_modules", "@deepseek-ai"))
             && File.Exists(Path.Combine(target, "lib", "index.js"));
+    }
+
+    /// <summary>
+    /// GitHub 插件是否为用户手动/开发安装（依赖指向启动器 plugins 目录之外）。
+    /// 例如 yuyi 链到开发检出——此时尊重现状跳过，不用启动器构建的副本替换。
+    /// </summary>
+    private static bool PluginIsExternalInstall(PluginSpec spec)
+    {
+        string pj = Path.Combine(ProfileDir(), "package.json");
+        if (!File.Exists(pj)) return false;
+        try
+        {
+            string json = File.ReadAllText(pj, Encoding.UTF8);
+            Match deps = Regex.Match(json, "\"dependencies\"\\s*:\\s*\\{([^}]*)\\}");
+            if (!deps.Success) return false;
+            Match dep = Regex.Match(deps.Groups[1].Value, "\"" + Regex.Escape(spec.PkgName) + "\"\\s*:\\s*\"([^\"]*)\"");
+            if (!dep.Success) return false;
+            return dep.Groups[1].Value.IndexOf("dsh-launcher", StringComparison.OrdinalIgnoreCase) < 0;
+        }
+        catch { return false; }
     }
 
     /// <summary>profile 是否已包含该插件（dependencies 与 bundles 均命中）。</summary>
@@ -679,9 +709,10 @@ internal static class Program
         string installCmd = "\"" + pnpm + "\" install --ignore-scripts --no-frozen-lockfile --registry=" + _registry
             + " --cache-dir=\"" + _npmCache + "\"";
         if (RunCmdIn(installCmd, target) != 0) return false;
-        EnsurePeersJunction(Path.Combine(target, "node_modules"));
         if (!hasLib)
         {
+            // 构建在 junction 之前：tsc/tsdown 用插件自己解析的 devDeps 类型，
+            // 不被指向便携 harness 的 @deepseek-ai junction 遮蔽
             Console.WriteLine("      构建 " + spec.Display + " ...");
             if (RunCmdIn("\"" + pnpm + "\" build", target) != 0) return false;
         }
@@ -690,6 +721,7 @@ internal static class Program
             Console.WriteLine("[!] " + spec.Display + " 构建后仍未找到 lib/index.js。");
             return false;
         }
+        EnsurePeersJunction(Path.Combine(target, "node_modules"));
         try { File.WriteAllText(Path.Combine(target, ".dsh-ready"), LAUNCHER_VERSION, new UTF8Encoding(false)); } catch { }
         return true;
     }
@@ -731,13 +763,131 @@ internal static class Program
                 var item = new DirectoryInfo(link);
                 if ((item.Attributes & FileAttributes.ReparsePoint) != 0
                     && Directory.Exists(Path.Combine(link, "cordis"))) return;
-                try { Directory.Delete(link); } catch { return; }
             }
-            string dir = Path.Combine(nodeModulesDir, "_junc");
-            try { if (Directory.Exists(dir)) Directory.Delete(dir); } catch { }
-            RunCmd("mklink /J \"" + link + "\" \"" + target + "\"");
+            // 真实目录（插件自装的 @deepseek-ai 副本）必须替换成 junction，否则
+            // typert-protocol 双实例 → @Remote 标记对网关不可见 → /api/<ns>/* 404。
+            // 删除大目录可能撞 AV/索引器短暂锁定：带重试；每步失败都要报出来，不静默。
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    if (Directory.Exists(link)) Directory.Delete(link, true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("      [提示] 删除旧 @deepseek-ai 目录失败（第 " + (attempt + 1) + " 次）: " + ex.Message);
+                    Thread.Sleep(1500);
+                    continue;
+                }
+                RunCmd("mklink /J \"" + link + "\" \"" + target + "\"");
+                if (Directory.Exists(Path.Combine(link, "cordis")))
+                {
+                    return; // junction 生效
+                }
+                Console.WriteLine("      [提示] @deepseek-ai junction 未生效，重试（第 " + (attempt + 1) + " 次）。");
+                Thread.Sleep(1500);
+            }
+            Console.WriteLine("[!] @deepseek-ai peers junction 创建失败，插件的 Remote 端点可能 404。");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[!] peers junction 异常: " + ex.Message);
+        }
+    }
+
+    // =====================================================================
+    // yuyi 会话工具 preset（dsh-yuyi/tools 工具行）
+    // =====================================================================
+    /// <summary>创建会话 preset（基于部署自带 standard 追加 yuyi 工具行）；已存在则跳过。</summary>
+    private static void EnsureYuyiPreset()
+    {
+        string home = DshHome();
+        string userPresets = Path.Combine(home, ".agent-presets");
+        string targetPreset = Path.Combine(userPresets, YUYI_PRESET_ID);
+        if (File.Exists(Path.Combine(targetPreset, "agent.cordis.yml"))) return;
+        string shipped = FindShippedPreset("standard");
+        if (shipped == null)
+        {
+            Console.WriteLine("[提示] 未找到内置 standard preset，跳过 yuyi 工具 preset 创建。");
+            return;
+        }
+        Console.WriteLine("      创建会话 preset: " + YUYI_PRESET_ID + " ...");
+        try
+        {
+            Directory.CreateDirectory(userPresets);
+            CopyDirectory(shipped, targetPreset);
+            string add = Environment.NewLine + "# ── yuyi (御驿通信) ─────────────────────────────────────────" + Environment.NewLine
+                + "# 御驿模型工具面：yuyi_status / yuyi_register / yuyi_peers / yuyi_send /" + Environment.NewLine
+                + "# yuyi_inbox 加十二个 yuyi_task_* 工具。连接接缝由 web profile 的 dsh-yuyi" + Environment.NewLine
+                + "# bundle 行挂在宿主平面；本行只把工具注册进本 preset 的会话。" + Environment.NewLine
+                + "- id: tool-yuyi" + Environment.NewLine
+                + "  name: dsh-yuyi/tools" + Environment.NewLine;
+            File.AppendAllText(Path.Combine(targetPreset, "agent.cordis.yml"), add, new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(targetPreset, "preset.yml"),
+                "name: 标准模式 + 御驿" + Environment.NewLine
+                + "description: 标准模式，并带御驿（Yuyi）跨会话通信：十七个 yuyi_* 模型工具（唤醒投递、会话 roster、任务记忆）。" + Environment.NewLine
+                + "order: 1" + Environment.NewLine, new UTF8Encoding(false));
+            Console.WriteLine("      preset 已创建。");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[提示] yuyi preset 创建失败: " + ex.Message);
+        }
+    }
+
+    /// <summary>把 web profile 默认会话 preset 设为 standard-yuyi（cordis.patch.yml 的 agent-presets 覆盖）。</summary>
+    private static void PatchProfileDefaultPreset()
+    {
+        string patch = Path.Combine(ProfileDir(), "cordis.patch.yml");
+        if (!File.Exists(patch)) return;
+        try
+        {
+            string content = File.ReadAllText(patch, Encoding.UTF8);
+            if (content.Contains(YUYI_PRESET_ID)) return;
+            string entry = "- id: agent-presets" + Environment.NewLine
+                + "  config:" + Environment.NewLine
+                + "    default: " + YUYI_PRESET_ID + Environment.NewLine;
+            string replaced = Regex.Replace(content, @"^\s*\[\s*\]\s*$", entry, RegexOptions.Multiline);
+            if (replaced == content) return; // 没有 [] 占位，不动
+            File.WriteAllText(patch, replaced, new UTF8Encoding(false));
+            Console.WriteLine("      已将默认会话 preset 设为 " + YUYI_PRESET_ID + "。");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[提示] 默认 preset 设置失败: " + ex.Message);
+        }
+    }
+
+    /// <summary>定位部署自带 preset 目录（@deepseek-ai/dsh 包的 config/agent-presets/&lt;id&gt;）。</summary>
+    private static string FindShippedPreset(string id)
+    {
+        if (_nodeDir == null) return null;
+        string direct = Path.Combine(_nodeDir, "node_modules", "@deepseek-ai", "dsh", "config", "agent-presets", id);
+        if (File.Exists(Path.Combine(direct, "agent.cordis.yml"))) return direct;
+        try
+        {
+            string root = Path.Combine(_nodeDir, "node_modules");
+            foreach (string d in Directory.GetDirectories(root, "agent-presets", SearchOption.AllDirectories))
+            {
+                string p = Path.Combine(d, id);
+                if (File.Exists(Path.Combine(p, "agent.cordis.yml"))) return p;
+            }
         }
         catch { }
+        return null;
+    }
+
+    private static void CopyDirectory(string src, string dst)
+    {
+        Directory.CreateDirectory(dst);
+        foreach (string f in Directory.GetFiles(src))
+        {
+            File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
+        }
+        foreach (string d in Directory.GetDirectories(src))
+        {
+            CopyDirectory(d, Path.Combine(dst, Path.GetFileName(d)));
+        }
     }
 
     /// <summary>插件 zip 下载地址序列：直连 codeload 优先，然后国内代理前缀；自定义代理时只用自定义。</summary>
