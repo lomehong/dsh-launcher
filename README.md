@@ -103,8 +103,12 @@ githubProxy=https://ghfast.top/
 - `npm install -g @deepseek-ai/dsh` 安装到便携 Node 目录内（用户目录，不需要管理员权限），npm 缓存也在 `%LOCALAPPDATA%\dsh-launcher\npm-cache`。
 - 默认插件：npm 源插件用 `dsh plugin --profile web add <包名>`（走 npmmirror）；
   GitHub 源插件下载仓库 zip（直连失败走国内代理）→ 解压到 `plugins\<id>` → 删除提交的
-  lockfile 后 `pnpm install` 装依赖 → 缺 `lib/` 自动 `pnpm build` → `dsh plugin add <目录>`
-  以链接方式注册（自动加入 bundle 层）。
+  lockfile、去掉 devDependencies 后 `pnpm install` 装运行依赖 → 缺 `lib/` 自动 `pnpm build`
+  → `dsh plugin add <目录>` 以链接方式注册（自动加入 bundle 层）。
+- **peer 依赖**：插件的 `@deepseek-ai/*` peer 由 junction 提供——把插件目录和 profile 的
+  `node_modules/@deepseek-ai` 链接到便携 dsh 包自己的 `@deepseek-ai` 依赖集，与 harness
+  解析到同一份物理包（无需从 registry 装 peers，避免撞上未发布包如
+  `dsh-type-meta`/`dsh-compact` 的 404；也避免 Typert 标记双实例导致客户端 Remote 404）。
 - 启动 `dsh web` 后轮询 3080 端口，就绪即自动打开默认浏览器。
 
 ## 从源码重新编译（可选）

@@ -39,7 +39,7 @@ internal static class Program
 {
     // ---------- 常量 ----------
     private const string APP_NAME = "DeepSeek Harness (dsh) 一键启动器";
-    private const string LAUNCHER_VERSION = "1.1.0";
+    private const string LAUNCHER_VERSION = "1.2.0";
     private const int DEFAULT_PORT = 3080;
     private const string DEFAULT_REGISTRY = "https://registry.npmmirror.com";
     private const string NODE_MIRROR_NPMMIRROR = "https://registry.npmmirror.com/-/binary/node";
@@ -491,11 +491,15 @@ internal static class Program
         if (_nodeDir == null) return 1;
         if (InstallPnpm() != 0) return 1;
         EnsureProfile();
+        EnsurePeersJunction(Path.Combine(ProfileDir(), "node_modules"));
         int installed = 0, failed = 0;
         for (int i = 0; i < DEFAULT_PLUGINS.Length; i++)
         {
             PluginSpec spec = DEFAULT_PLUGINS[i];
-            if (ProfileHasPlugin(spec.PkgName) && !force)
+            bool ready = spec.ViaNpm
+                ? ProfileHasPlugin(spec.PkgName)
+                : ProfileHasPlugin(spec.PkgName) && PluginDirReady(spec);
+            if (ready && !force)
             {
                 Console.WriteLine("      [" + (i + 1) + "/" + DEFAULT_PLUGINS.Length + "] " + spec.Display + " 已安装。");
                 installed++;
@@ -514,8 +518,19 @@ internal static class Program
                 failed++;
             }
         }
+        // pnpm 的 install/add 可能清理 node_modules 里的未知 junction，最后再确保一次
+        EnsurePeersJunction(Path.Combine(ProfileDir(), "node_modules"));
         Console.WriteLine("      插件检查完成：成功 " + installed + "，失败 " + failed + "。");
         return failed == 0 ? 0 : 1;
+    }
+
+    /// <summary>GitHub 插件目录是否已就绪（源码 + 依赖 + lib + peers junction + 标记）。</summary>
+    private static bool PluginDirReady(PluginSpec spec)
+    {
+        string target = Path.Combine(_pluginsDir, spec.Id);
+        return File.Exists(Path.Combine(target, ".dsh-ready"))
+            && Directory.Exists(Path.Combine(target, "node_modules", "@deepseek-ai"))
+            && File.Exists(Path.Combine(target, "lib", "index.js"));
     }
 
     /// <summary>profile 是否已包含该插件（dependencies 与 bundles 均命中）。</summary>
@@ -568,7 +583,8 @@ internal static class Program
         bool hasPkg = File.Exists(Path.Combine(target, "package.json"));
         bool hasDeps = Directory.Exists(Path.Combine(target, "node_modules"));
         bool hasLib = File.Exists(Path.Combine(target, "lib", "index.js"));
-        if (!force && hasPkg && hasDeps && hasLib) return target;
+        // 已就绪判定必须带 .dsh-ready 标记：旧安装（未装 peers、缺标记）会被重新准备修复
+        if (!force && hasPkg && hasDeps && hasLib && File.Exists(Path.Combine(target, ".dsh-ready"))) return target;
         if (!force && hasPkg && !hasDeps)
         {
             return PreparePluginDeps(spec, target) ? target : null;
@@ -596,11 +612,29 @@ internal static class Program
 
         Console.WriteLine("      解压 " + spec.Display + " ...");
         string tmp = Path.Combine(_pluginsDir, "_" + spec.Id + "_tmp");
+        bool extracted = false;
+        for (int attempt = 0; attempt < 3 && !extracted; attempt++)
+        {
+            try
+            {
+                if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
+                Directory.CreateDirectory(tmp);
+                ZipFile.ExtractToDirectory(zipPath, tmp);
+                extracted = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("      解压尝试 " + (attempt + 1) + "/3 失败: " + ex.Message);
+                Thread.Sleep(1500);
+            }
+        }
+        if (!extracted)
+        {
+            Console.WriteLine("[!] " + spec.Display + " 解压失败（可能被占用或磁盘问题）。");
+            return null;
+        }
         try
         {
-            if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
-            Directory.CreateDirectory(tmp);
-            ZipFile.ExtractToDirectory(zipPath, tmp);
             string found = null;
             foreach (string d in Directory.GetDirectories(tmp))
             {
@@ -620,23 +654,33 @@ internal static class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine("[!] 解压失败: " + ex.Message);
+            Console.WriteLine("[!] 解压整理失败: " + ex.Message);
             return null;
         }
         return PreparePluginDeps(spec, target) ? target : null;
     }
 
-    /// <summary>在插件目录内装依赖；缺 lib 时执行构建。删除提交的 lockfile 避免开发期本地链接残留。</summary>
+    /// <summary>
+    /// 在插件目录内装依赖；缺 lib 时执行构建。删除提交的 lockfile 避免开发期本地链接残留。
+    /// lib 已提交时去掉 devDependencies（含开发期 link:../deepseek-harness 残留）。
+    /// 装完后把插件 node_modules/@deepseek-ai 指向 harness 的 @deepseek-ai 依赖集
+    /// （junction）：插件的 @deepseek-ai/* peer 依赖由此解析到与 harness 同一份物理包，
+    /// 避免从 registry 装 peers 撞上未发布包（dsh-type-meta/dsh-compact 等 404），
+    /// 也避免 Typert 标记双实例问题。
+    /// </summary>
     private static bool PreparePluginDeps(PluginSpec spec, string target)
     {
         string lockFile = Path.Combine(target, "pnpm-lock.yaml");
         try { if (File.Exists(lockFile)) File.Delete(lockFile); } catch { }
+        bool hasLib = File.Exists(Path.Combine(target, "lib", "index.js"));
+        if (hasLib) StripDevDependencies(target);
         Console.WriteLine("      安装 " + spec.Display + " 依赖 ...");
         string pnpm = PnpmCmd();
         string installCmd = "\"" + pnpm + "\" install --ignore-scripts --no-frozen-lockfile --registry=" + _registry
             + " --cache-dir=\"" + _npmCache + "\"";
         if (RunCmdIn(installCmd, target) != 0) return false;
-        if (!File.Exists(Path.Combine(target, "lib", "index.js")))
+        EnsurePeersJunction(Path.Combine(target, "node_modules"));
+        if (!hasLib)
         {
             Console.WriteLine("      构建 " + spec.Display + " ...");
             if (RunCmdIn("\"" + pnpm + "\" build", target) != 0) return false;
@@ -646,7 +690,54 @@ internal static class Program
             Console.WriteLine("[!] " + spec.Display + " 构建后仍未找到 lib/index.js。");
             return false;
         }
+        try { File.WriteAllText(Path.Combine(target, ".dsh-ready"), LAUNCHER_VERSION, new UTF8Encoding(false)); } catch { }
         return true;
+    }
+
+    /// <summary>去掉 package.json 的 devDependencies（lib 已提交时无需构建，避免拉进整套构建工具链与开发期 link 残留）。</summary>
+    private static void StripDevDependencies(string target)
+    {
+        string pj = Path.Combine(target, "package.json");
+        try
+        {
+            string json = File.ReadAllText(pj, Encoding.UTF8);
+            string cleaned = Regex.Replace(json,
+                "(,\\s*\"devDependencies\"\\s*:\\s*\\{[^{}]*\\})|(\"devDependencies\"\\s*:\\s*\\{[^{}]*\\},\\s*)", "");
+            if (cleaned != json) File.WriteAllText(pj, cleaned, new UTF8Encoding(false));
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// 确保 node_modules/@deepseek-ai 是指向 harness @deepseek-ai 依赖集的 junction。
+    /// harness 依赖集 = 便携 Node 里全局装的 @deepseek-ai/dsh 包的 node_modules/@deepseek-ai
+    /// （194 个包，覆盖 cordis/schemastery/dsh-*/typert 全套）。这样插件的 @deepseek-ai
+    /// peer 与 harness 解析到同一份物理包：无 registry 404、无版本漂移、Typert 标记共享。
+    /// mklink /J 建目录联接无需管理员权限。
+    /// </summary>
+    private static void EnsurePeersJunction(string nodeModulesDir)
+    {
+        if (_nodeDir == null) return;
+        string target = Path.Combine(_nodeDir, "node_modules", "@deepseek-ai", "dsh", "node_modules", "@deepseek-ai");
+        if (!Directory.Exists(target)) return;
+        string link = Path.Combine(nodeModulesDir, "@deepseek-ai");
+        try
+        {
+            Directory.CreateDirectory(nodeModulesDir);
+            if (Directory.Exists(link))
+            {
+                // 已是 junction 且能解析到 cordis（harness 依赖集必有）→ 跳过；否则重建。
+                // .NET Framework 4.x 无 LinkTarget，用功能性检查代替。
+                var item = new DirectoryInfo(link);
+                if ((item.Attributes & FileAttributes.ReparsePoint) != 0
+                    && Directory.Exists(Path.Combine(link, "cordis"))) return;
+                try { Directory.Delete(link); } catch { return; }
+            }
+            string dir = Path.Combine(nodeModulesDir, "_junc");
+            try { if (Directory.Exists(dir)) Directory.Delete(dir); } catch { }
+            RunCmd("mklink /J \"" + link + "\" \"" + target + "\"");
+        }
+        catch { }
     }
 
     /// <summary>插件 zip 下载地址序列：直连 codeload 优先，然后国内代理前缀；自定义代理时只用自定义。</summary>
@@ -712,10 +803,27 @@ internal static class Program
                     + "allowBuilds:\n  node-pty: true\n  protobufjs: true\n  esbuild: true\n",
                     utf8NoBom);
             }
-            else if (!File.ReadAllText(ws, Encoding.UTF8).Contains("allowBuilds:"))
+            else
             {
-                File.AppendAllText(ws,
-                    "\nallowBuilds:\n  node-pty: true\n  protobufjs: true\n  esbuild: true\n", utf8NoBom);
+                string wsContent = File.ReadAllText(ws, Encoding.UTF8);
+                bool changed = false;
+                // peers 由 @deepseek-ai junction 提供，不开 autoInstallPeers（避免 registry 404）
+                if (wsContent.Contains("autoInstallPeers: true"))
+                {
+                    wsContent = wsContent.Replace("autoInstallPeers: true", "autoInstallPeers: false");
+                    changed = true;
+                }
+                else if (!wsContent.Contains("autoInstallPeers:"))
+                {
+                    wsContent += "\nautoInstallPeers: false\n";
+                    changed = true;
+                }
+                if (!wsContent.Contains("allowBuilds:"))
+                {
+                    wsContent += "\nallowBuilds:\n  node-pty: true\n  protobufjs: true\n  esbuild: true\n";
+                    changed = true;
+                }
+                if (changed) File.WriteAllText(ws, wsContent, utf8NoBom);
             }
         }
         catch (Exception ex)
