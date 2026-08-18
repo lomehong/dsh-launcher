@@ -1,0 +1,5 @@
+# build residue and test dirs
+*.part
+_p*/
+node_modules/
+*.log
