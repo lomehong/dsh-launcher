@@ -3,3 +3,4 @@
 _p*/
 node_modules/
 *.log
+*.exe.old

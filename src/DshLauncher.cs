@@ -1,10 +1,13 @@
 // DshLauncher.cs
 // DeepSeek Harness (dsh) 一键启动器 —— 通用 Windows 版本
 //
-// 双击即可自动完成：便携版 Node.js 下载 -> 安装/更新 dsh -> 安装 8 个默认插件
+// 双击即可自动完成：便携版 Node.js 下载 -> 安装/更新 dsh -> 安装 9 个默认插件
 // (at-file / genui / visualize / automation / better-sidebar / mnemon /
-// vision-toolkit / market；GitHub 源直连不可达时自动切换国内代理)
+// vision-toolkit / market / yuyi(御驿)；GitHub 源直连不可达时自动切换国内代理)
 // -> 启动 dsh web -> 自动打开浏览器。
+// 外部/开发安装（profile 依赖 link:/file: 指向启动器目录之外）同样受保护：
+// 其 node_modules/@deepseek-ai 会被自动统一为指向便携 harness 依赖集的
+// junction，避免检出自带副本造成 typert 双实例 -> /api/<ns>/* 404。
 // 适用于任何 Windows 10/11 电脑（64 位），无需预先安装 Node.js，无需管理员权限，
 // 不修改系统已有的 Node.js 环境。所有运行数据放在 %LOCALAPPDATA%\dsh-launcher 下，
 // 删除该目录即可完全卸载。
@@ -39,7 +42,7 @@ internal static class Program
 {
     // ---------- 常量 ----------
     private const string APP_NAME = "DeepSeek Harness (dsh) 一键启动器";
-    private const string LAUNCHER_VERSION = "1.3.0";
+    private const string LAUNCHER_VERSION = "1.3.1";
     private const int DEFAULT_PORT = 3080;
     private const string DEFAULT_REGISTRY = "https://registry.npmmirror.com";
     private const string NODE_MIRROR_NPMMIRROR = "https://registry.npmmirror.com/-/binary/node";
@@ -474,7 +477,7 @@ internal static class Program
     }
 
     // =====================================================================
-    // 默认插件（8 个：GitHub 源码或 npm 源，GitHub 直连不可达时走国内代理）
+    // 默认插件（9 个：GitHub 源码或 npm 源，GitHub 直连不可达时走国内代理）
     // =====================================================================
     private static string DshHome()
     {
@@ -488,7 +491,7 @@ internal static class Program
         return Path.Combine(DshHome(), "profiles", "web");
     }
 
-    /// <summary>确保 8 个默认插件都已注册进 web profile。</summary>
+    /// <summary>确保 9 个默认插件都已注册进 web profile。</summary>
     private static int EnsurePlugins(bool force)
     {
         Console.WriteLine("[3/4] 检查默认插件 ...");
@@ -500,12 +503,15 @@ internal static class Program
         for (int i = 0; i < DEFAULT_PLUGINS.Length; i++)
         {
             PluginSpec spec = DEFAULT_PLUGINS[i];
+            string externalDir = spec.ViaNpm ? null : ExternalPluginDir(spec);
             bool ready = spec.ViaNpm
                 ? ProfileHasPlugin(spec.PkgName)
-                : ProfileHasPlugin(spec.PkgName) && (PluginDirReady(spec) || PluginIsExternalInstall(spec));
+                : ProfileHasPlugin(spec.PkgName) && (PluginDirReady(spec) || externalDir != null);
             if (ready && !force)
             {
                 Console.WriteLine("      [" + (i + 1) + "/" + DEFAULT_PLUGINS.Length + "] " + spec.Display + " 已安装。");
+                if (externalDir != null)
+                    Console.WriteLine("          外部/开发安装: " + externalDir);
                 installed++;
                 continue;
             }
@@ -524,6 +530,10 @@ internal static class Program
         }
         // pnpm 的 install/add 可能清理 node_modules 里的未知 junction，最后再确保一次
         EnsurePeersJunction(Path.Combine(ProfileDir(), "node_modules"));
+        // 外部/开发安装（link:/file: 指向启动器目录之外）同样必须满足单实例不变量：
+        // 检出自带的 @deepseek-ai 真实目录会让插件宿主半边挂载失败（/api/<ns>/* 404）。
+        // 幂等：junction 已正确时秒过；外部检出跑过 pnpm install 后重启启动器即可自愈。
+        UnifyExternalPluginPeers();
         // yuyi 会话工具 preset：已装 yuyi 时，确保 standard-yuyi 存在并设为默认（幂等）
         if (ProfileHasPlugin("dsh-yuyi"))
         {
@@ -544,23 +554,83 @@ internal static class Program
     }
 
     /// <summary>
-    /// GitHub 插件是否为用户手动/开发安装（依赖指向启动器 plugins 目录之外）。
-    /// 例如 yuyi 链到开发检出——此时尊重现状跳过，不用启动器构建的副本替换。
+    /// GitHub 插件是否为用户手动/开发安装，并返回其目录：profile 依赖以 link:/file:
+    /// 指向启动器 plugins 目录之外且目录存在（例如 yuyi 链到开发检出）。
+    /// 返回 null = 非外部安装（无依赖、版本号写法、指向启动器目录或路径失效），
+    /// 此时尊重启动器自装副本或常规安装，不替换用户环境。
     /// </summary>
-    private static bool PluginIsExternalInstall(PluginSpec spec)
+    private static string ExternalPluginDir(PluginSpec spec)
     {
         string pj = Path.Combine(ProfileDir(), "package.json");
-        if (!File.Exists(pj)) return false;
+        if (!File.Exists(pj)) return null;
         try
         {
             string json = File.ReadAllText(pj, Encoding.UTF8);
             Match deps = Regex.Match(json, "\"dependencies\"\\s*:\\s*\\{([^}]*)\\}");
-            if (!deps.Success) return false;
+            if (!deps.Success) return null;
             Match dep = Regex.Match(deps.Groups[1].Value, "\"" + Regex.Escape(spec.PkgName) + "\"\\s*:\\s*\"([^\"]*)\"");
-            if (!dep.Success) return false;
-            return dep.Groups[1].Value.IndexOf("dsh-launcher", StringComparison.OrdinalIgnoreCase) < 0;
+            if (!dep.Success) return null;
+            string path = ParseLocalDepPath(dep.Groups[1].Value);
+            if (path == null) return null;
+            return Directory.Exists(path) ? path : null;
         }
-        catch { return false; }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// 解析 profile 依赖里的本地路径（link:/file: 前缀）。返回规范化的 Windows
+    /// 绝对路径；非本地路径写法（版本号等）、指向启动器目录、或无法解析时返回 null。
+    /// profile 里常见 "E://code//..." 双斜杠写法，一并归一。
+    /// </summary>
+    private static string ParseLocalDepPath(string depValue)
+    {
+        string v = depValue.Trim();
+        string prefix = null;
+        if (v.StartsWith("link:", StringComparison.OrdinalIgnoreCase)) prefix = "link:";
+        else if (v.StartsWith("file:", StringComparison.OrdinalIgnoreCase)) prefix = "file:";
+        if (prefix == null) return null;
+        string raw = v.Substring(prefix.Length).Trim();
+        if (raw.Length == 0 || raw.IndexOf("dsh-launcher", StringComparison.OrdinalIgnoreCase) >= 0) return null;
+        string path = raw.Replace('/', '\\');
+        while (path.IndexOf("\\\\", StringComparison.Ordinal) >= 0) path = path.Replace("\\\\", "\\");
+        if (!Path.IsPathRooted(path)) path = Path.Combine(ProfileDir(), path);
+        try { return Path.GetFullPath(path); }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// 扫描 web profile 的全部本地路径依赖（link:/file: 且指向启动器 plugins 目录
+    /// 之外），把这些外部检出 node_modules/@deepseek-ai 统一为指向便携 harness
+    /// 依赖集的 junction。动机：外部检出常自带 pnpm/npm 安装的 @deepseek-ai 真实
+    /// 目录（版本随检出而异），与便携 harness 形成 typert-protocol 双实例 → 插件
+    /// 宿主半边挂载失败 → 其 Remote 端点全部 404。只处理 package.json 引用了
+    /// @deepseek-ai/* 的目录，避免在无关仓库里创建 node_modules。
+    /// </summary>
+    private static void UnifyExternalPluginPeers()
+    {
+        string pj = Path.Combine(ProfileDir(), "package.json");
+        if (!File.Exists(pj)) return;
+        try
+        {
+            string json = File.ReadAllText(pj, Encoding.UTF8);
+            Match deps = Regex.Match(json, "\"dependencies\"\\s*:\\s*\\{([^}]*)\\}");
+            if (!deps.Success) return;
+            foreach (Match m in Regex.Matches(deps.Groups[1].Value,
+                "\"([^\"]+)\"\\s*:\\s*\"(?:link|file):([^\"]+)\""))
+            {
+                string path = ParseLocalDepPath("link:" + m.Groups[2].Value);
+                if (path == null || !Directory.Exists(path)) continue;
+                string pkg = Path.Combine(path, "package.json");
+                if (!File.Exists(pkg)) continue;
+                try { if (!File.ReadAllText(pkg, Encoding.UTF8).Contains("@deepseek-ai/")) continue; }
+                catch { continue; }
+                EnsurePeersJunction(Path.Combine(path, "node_modules"));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[提示] 外部安装依赖统一检查失败: " + ex.Message);
+        }
     }
 
     /// <summary>profile 是否已包含该插件（dependencies 与 bundles 均命中）。</summary>
@@ -782,6 +852,7 @@ internal static class Program
                 RunCmd("mklink /J \"" + link + "\" \"" + target + "\"");
                 if (Directory.Exists(Path.Combine(link, "cordis")))
                 {
+                    Console.WriteLine("      [修正] @deepseek-ai 依赖已统一为 harness junction: " + nodeModulesDir);
                     return; // junction 生效
                 }
                 Console.WriteLine("      [提示] @deepseek-ai junction 未生效，重试（第 " + (attempt + 1) + " 次）。");

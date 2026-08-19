@@ -6,8 +6,11 @@
 
 启动器会默认安装 **9 个社区插件**（at-file、genui、visualize、automation、better-sidebar、
 mnemon、vision-toolkit、market、yuyi-御驿），GitHub 源直连不可达时自动切换国内代理，装好即可用。
-yuyi 需现场构建，并自动配好含 17 个 `yuyi_*` 工具的会话 preset（standard-yuyi，设为默认）；
-检测到用户手动/开发安装的 yuyi（依赖指向启动器目录之外）会尊重现状跳过，不替换。
+yuyi 需现场构建，并自动配好含 17 个 `yuyi_*` 工具的会话 preset（standard-yuyi，设为默认）。
+检测到用户手动/开发安装的插件（profile 依赖以 `link:`/`file:` 指向启动器目录之外，如 yuyi 链到
+开发检出）会尊重现状、不替换源码；但其 `node_modules\@deepseek-ai` 会被自动统一为指向便携
+harness 依赖集的 junction（幂等）——否则检出自带的依赖副本会与 harness 形成双实例，导致插件
+宿主半边挂载失败、`/api/<ns>/*` 全部 404。在开发检出里跑过 `pnpm install` 后重跑启动器即可自愈。
 
 ## 文件说明
 
