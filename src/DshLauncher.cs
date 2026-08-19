@@ -367,6 +367,7 @@ internal static class Program
     private static int EnsureDsh(bool forceUpdate)
     {
         Console.WriteLine("[2/4] 检查 dsh ...");
+        PatchDshSubprocessSpillDir();
         if (_nodeDir == null) return 1;
         string npm = NpmCmd();
         string installed = InstalledDshVersion();
@@ -469,6 +470,56 @@ internal static class Program
             return !File.Exists(f) || File.ReadAllText(f, Encoding.UTF8).Trim() != DateTime.Today.ToString("yyyy-MM-dd");
         }
         catch { return true; }
+    }
+
+    /// <summary>
+    /// 修补便携 dsh 0.1.0-rc.7 里的 dsh-subprocess-local 缺陷：OutputCollector.spillAll 在 spill 目录
+    /// 不存在时直接 openSync → ENOENT（Windows 临时目录被清理/AV 扫描后偶发）。补丁：在 openSync
+    /// 前幂等 mkdirSync(spillDir, { recursive: true })。每次 EnsureDsh 后跑一次（幂等，dsh 升级
+    /// 后被覆盖也会自动重打）。
+    /// </summary>
+    private static void PatchDshSubprocessSpillDir()
+    {
+        if (_nodeDir == null) return;
+        string file = Path.Combine(_nodeDir, "node_modules", "@deepseek-ai", "dsh",
+            "node_modules", "@deepseek-ai", "dsh-subprocess-local", "lib", "index.js");
+        if (!File.Exists(file)) return;
+        try
+        {
+            string src = File.ReadAllText(file, Encoding.UTF8);
+            if (src.Contains("this.spillFd = openSync(this.spillFile, \"wx\", 384)"))
+            {
+                // 防止重复打补丁
+                if (src.Contains("// launcher-patch: mkdirSync spill dir"))
+                {
+                    Console.WriteLine("      [提示] dsh-subprocess-local 补丁已应用，跳过。");
+                    return;
+                }
+                // 1) import 注入 mkdirSync（与现有 fs 风格一致）
+                string patched;
+                if (src.Contains("import { closeSync, constants, mkdtempSync, openSync"))
+                {
+                    patched = src.Replace(
+                        "import { closeSync, constants, mkdtempSync, openSync, readFileSync, readSync, readdirSync, unlinkSync, writeSync } from \"node:fs\";",
+                        "import { closeSync, constants, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, unlinkSync, writeSync } from \"node:fs\";");
+                }
+                else
+                {
+                    Console.WriteLine("      [提示] dsh-subprocess-local 导入格式变更，跳过补丁。");
+                    return;
+                }
+                // 2) 在 openSync 之前确保目录
+                patched = patched.Replace(
+                    "if (this.spillFd === void 0) {",
+                    "if (this.spillFd === void 0) {\n\t\t\t\ttry { mkdirSync(this.spillDir, { recursive: true }); } catch {}\n\t\t\t\t// launcher-patch: mkdirSync spill dir");
+                File.WriteAllText(file, patched, new UTF8Encoding(false));
+                Console.WriteLine("      [修正] dsh-subprocess-local spill 目录 ENOENT 缺陷已补丁。");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("      [提示] 补丁 dsh-subprocess-local 失败: " + ex.Message);
+        }
     }
 
     private static void WriteAutoUpdateStamp()
