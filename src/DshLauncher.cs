@@ -42,7 +42,7 @@ internal static class Program
 {
     // ---------- 常量 ----------
     private const string APP_NAME = "DeepSeek Harness (dsh) 一键启动器";
-    private const string LAUNCHER_VERSION = "1.3.1";
+    private const string LAUNCHER_VERSION = "1.3.2";
     private const int DEFAULT_PORT = 3080;
     private const string DEFAULT_REGISTRY = "https://registry.npmmirror.com";
     private const string NODE_MIRROR_NPMMIRROR = "https://registry.npmmirror.com/-/binary/node";
