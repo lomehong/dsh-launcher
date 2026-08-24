@@ -102,8 +102,7 @@
 
             <!-- ========== 左侧导航栏（直通窗口顶部：品牌区即唯一的程序名） ========== -->
             <Border Grid.Column="0"
-                    Background="{DynamicResource Brush.Sidebar}"
-                    BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="0,0,1,0">
+                    Background="{DynamicResource Brush.Sidebar}">
                 <DockPanel LastChildFill="False">
                     <!-- 品牌区 = 程序名称（标题栏文字已合并至此） -->
                     <StackPanel DockPanel.Dock="Top" Margin="16,10,12,4">

@@ -69,7 +69,7 @@ namespace DshLauncher.Gui.Services
             int n = 0;
             while (n < FlushBatch && _pending.TryDequeue(out LogEvent ev))
             {
-                var para = new Paragraph(new Run(ev.Format())) { Margin = new Thickness(0) };
+                var para = new Paragraph(new Run(ev.Format())) { Margin = new Thickness(0), Tag = ev.Level };
                 para.Foreground = ColorFor(ev.Level);
                 paraBuffer[n++] = para;
             }
@@ -114,6 +114,22 @@ namespace DshLauncher.Gui.Services
         {
             if (_target == null) return;
             Application.Current?.Dispatcher.Invoke(() => _target.Document.Blocks.Clear());
+        }
+
+        /// <summary>主题切换后重刷已渲染段落的前景色（段落色在写入时固化，不随画刷热替换）。</summary>
+        public void RecolorExisting()
+        {
+            if (_target == null) return;
+            try
+            {
+                Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    foreach (var block in _target.Document.Blocks)
+                        if (block is Paragraph para && para.Tag is LogLevel lv)
+                            para.Foreground = ColorFor(lv);
+                });
+            }
+            catch { }
         }
 
         private static Brush ColorFor(LogLevel level)

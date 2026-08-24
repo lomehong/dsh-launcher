@@ -36,6 +36,7 @@ namespace DshLauncher.Gui
                 (Action)(() => UpdateRootClip()));
             LayoutUpdated += OnLayoutUpdatedClip;
             Services.ThemeManager.Applied += ApplyTitleIcon;   // 主题切换 -> 标题栏鲸鱼随之反色
+            Services.ThemeManager.Applied += () => _logSink.RecolorExisting();  // 已渲染日志段落重着色
         }
 
         /// <summary>侧边导航切换：切换 ContentArea 里四个视图的可见性。</summary>
