@@ -78,6 +78,7 @@ namespace DshLauncher.Gui
         {
             bool busy = Shell.PortInUse(3080);
             PortText.Text = busy ? "端口 3080 · 占用" : "端口 3080 · 空闲";
+            PortText.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, busy ? "Brush.Info" : "Brush.Verbose");
         }
 
         private void RefreshWebStatus()
@@ -86,9 +87,8 @@ namespace DshLauncher.Gui
             if (running) _webStarting = false;   // 已监听 => 启动完成
             bool starting = _webStarting && !running;
             WebStatusText.Text = starting ? "dsh web: 启动中…" : (running ? "dsh web: 运行中" : "dsh web: 未启动");
-            WebStatusDot.Fill = running
-                ? (System.Windows.Media.Brush)Resources["Brush.Ok"]
-                : (System.Windows.Media.Brush)Resources["Brush.Muted"];
+            WebStatusDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, running ? "Brush.Ok" : "Brush.Verbose");
+            WebStatusText.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, running ? "Brush.Info" : "Brush.Muted");
             BtnStopWeb.IsEnabled = running;
             BtnOpenBrowser.IsEnabled = running;
             BtnStartWeb.IsEnabled = !running && !starting;

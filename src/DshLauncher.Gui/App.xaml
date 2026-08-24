@@ -68,7 +68,14 @@
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="1"
                                     Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ContentPresenter.Resources>
+                                        <!-- 就近覆盖隐式 TextBlock 前景(其优先级高于继承)，绑定按钮自身 Foreground -->
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -100,7 +107,14 @@
                             <Border x:Name="bd" CornerRadius="4"
                                     Background="{TemplateBinding Background}"
                                     Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ContentPresenter.Resources>
+                                        <!-- 就近覆盖隐式 TextBlock 前景(其优先级高于继承)，绑定按钮自身 Foreground -->
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">

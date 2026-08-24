@@ -103,13 +103,9 @@ namespace DshLauncher.Gui.Views
         private static void SetBadge(Border badge, TextBlock text, bool ok,
             string okText, string badText, string unused)
         {
-            var app = System.Windows.Application.Current;
-            badge.Background = ok
-                ? (Brush)app.Resources["Brush.OkBg"]
-                : (Brush)app.Resources["Brush.WarnBg"];
-            text.Foreground = ok
-                ? (Brush)app.Resources["Brush.Ok"]
-                : (Brush)app.Resources["Brush.Warn"];
+            // SetResourceReference=动态引用：主题切换(画刷条目替换)后自动跟随，无需重刷
+            badge.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, ok ? "Brush.OkBg" : "Brush.WarnBg");
+            text.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, ok ? "Brush.Ok" : "Brush.Warn");
             text.Text = ok ? okText : badText;
         }
 
