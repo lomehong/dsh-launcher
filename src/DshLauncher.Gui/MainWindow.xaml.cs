@@ -32,7 +32,9 @@ namespace DshLauncher.Gui
 
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
-            SizeChanged += (_, __) => UpdateRootClip();
+            SizeChanged += (_, __) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded,
+                (Action)(() => UpdateRootClip()));
+            LayoutUpdated += OnLayoutUpdatedClip;
             Services.ThemeManager.Applied += ApplyTitleIcon;   // 主题切换 -> 标题栏鲸鱼随之反色
         }
 
@@ -361,12 +363,25 @@ namespace DshLauncher.Gui
             UpdateRootClip();
         }
 
-        /// <summary>按窗口尺寸更新根部圆角裁剪，保证四角内容不溢出到透明角外。</summary>
+        /// <summary>
+        /// 按窗口实际尺寸更新根部圆角裁剪（用 Window 的 ActualWidth/Height——权威值；
+        /// RootBorder 的 Actual 在 SizeChanged 时刻可能是布局前的旧值，曾致右/底黑边）。
+        /// 在 LayoutUpdated 后应用，确保拿到最终尺寸。
+        /// </summary>
+        private bool _clipApplied;
+        private void OnLayoutUpdatedClip(object sender, EventArgs e)
+        {
+            if (_clipApplied || ActualWidth < 10 || ActualHeight < 10) return;
+            _clipApplied = true;
+            LayoutUpdated -= OnLayoutUpdatedClip;   // 首次布局完成后不再逐帧回调
+            UpdateRootClip();
+        }
+
         private void UpdateRootClip()
         {
             double r = WindowState == WindowState.Maximized ? 0 : 8;
             RootBorder.Clip = new System.Windows.Media.RectangleGeometry(
-                new System.Windows.Rect(0, 0, RootBorder.ActualWidth, RootBorder.ActualHeight), r, r);
+                new System.Windows.Rect(0, 0, ActualWidth, ActualHeight), r, r);
         }
 
     }
