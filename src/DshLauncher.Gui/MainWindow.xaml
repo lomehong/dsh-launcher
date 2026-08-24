@@ -5,18 +5,12 @@
         Title="DeepSeek Harness (dsh) 启动器"
         Height="820" Width="1280" MinHeight="660" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
-        Background="Transparent"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         StateChanged="Window_StateChanged"
+        SourceInitialized="Window_SourceInitialized"
         Icon="pack://siteoforigin:,,,/app.ico">
     <!-- WindowChrome：接管整个窗口框架——客户区铺满（消除 Win11 顶部 DWM 浅色边），
          CaptionHeight=40 使顶部 40px 全宽为标题栏（拖拽/双击最大化），ResizeBorderThickness 提供原生边缘缩放 -->
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="40"
-                      ResizeBorderThickness="6"
-                      GlassFrameThickness="0"
-                      CornerRadius="8"
-                      UseAeroCaptionButtons="False"/>
-    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <!-- 标题栏按钮：透明底 + 悬停高亮 -->

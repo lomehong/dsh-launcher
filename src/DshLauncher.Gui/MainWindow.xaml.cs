@@ -369,6 +369,52 @@ namespace DshLauncher.Gui
         /// RootBorder 的 Actual 在 SizeChanged 时刻可能是布局前的旧值，曾致右/底黑边）。
         /// 在 LayoutUpdated 后应用，确保拿到最终尺寸。
         /// </summary>
+        private void Window_SourceInitialized(object sender, EventArgs e)
+        {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            System.Windows.Interop.HwndSource.FromHwnd(hwnd)?.AddHook(WndProc);
+        }
+
+        private const int WM_NCHITTEST = 0x0084;
+        private const int HTCAPTION = 2, HTCLIENT = 1;
+        private const int HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13,
+                          HTTOPRIGHT = 14, HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
+
+        private System.IntPtr WndProc(System.IntPtr hwnd, int msg, System.IntPtr wParam, System.IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_NCHITTEST && WindowState == WindowState.Normal)
+            {
+                try
+                {
+                    int sx = (short)((long)lParam & 0xFFFF);
+                    int sy = (short)(((long)lParam >> 16) & 0xFFFF);
+                    var wp = PointFromScreen(new System.Windows.Point(sx, sy));
+
+                    // 边缘 6px 缩放带（窗口级，含圆角外沿）
+                    const double edge = 6;
+                    bool l = wp.X <= edge, r = ActualWidth - wp.X <= edge;
+                    bool t = wp.Y <= edge, b = ActualHeight - wp.Y <= edge;
+                    if (t && l) { handled = true; return (System.IntPtr)HTTOPLEFT; }
+                    if (t && r) { handled = true; return (System.IntPtr)HTTOPRIGHT; }
+                    if (b && l) { handled = true; return (System.IntPtr)HTBOTTOMLEFT; }
+                    if (b && r) { handled = true; return (System.IntPtr)HTBOTTOMRIGHT; }
+                    if (l) { handled = true; return (System.IntPtr)HTLEFT; }
+                    if (r) { handled = true; return (System.IntPtr)HTRIGHT; }
+                    if (t) { handled = true; return (System.IntPtr)HTTOP; }
+                    if (b) { handled = true; return (System.IntPtr)HTBOTTOM; }
+
+                    // 标题条: 右列顶部 40px, 排除右上按钮组(约 4*44px)
+                    if (wp.Y >= 0 && wp.Y <= 40 && wp.X >= 200 && wp.X < ActualWidth - 44 * 4)
+                    {
+                        handled = true;
+                        return (System.IntPtr)HTCAPTION;
+                    }
+                }
+                catch { }
+            }
+            return System.IntPtr.Zero;
+        }
+
         private bool _clipApplied;
         private void OnLayoutUpdatedClip(object sender, EventArgs e)
         {
