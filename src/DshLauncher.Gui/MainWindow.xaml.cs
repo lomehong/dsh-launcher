@@ -32,6 +32,7 @@ namespace DshLauncher.Gui
 
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
+            SizeChanged += (_, __) => UpdateRootClip();
             Services.ThemeManager.Applied += ApplyTitleIcon;   // 主题切换 -> 标题栏鲸鱼随之反色
         }
 
@@ -355,9 +356,17 @@ namespace DshLauncher.Gui
             bool max = WindowState == WindowState.Maximized;
             MaxGlyph.Visibility = max ? Visibility.Collapsed : Visibility.Visible;
             RestoreGlyph.Visibility = max ? Visibility.Visible : Visibility.Collapsed;
-            RootBorder.BorderThickness = max
-                ? new Thickness(0)
-                : new Thickness(1);
+            RootBorder.BorderThickness = max ? new Thickness(0) : new Thickness(1);
+            RootBorder.CornerRadius = max ? new CornerRadius(0) : new CornerRadius(8);
+            UpdateRootClip();
+        }
+
+        /// <summary>按窗口尺寸更新根部圆角裁剪，保证四角内容不溢出到透明角外。</summary>
+        private void UpdateRootClip()
+        {
+            double r = WindowState == WindowState.Maximized ? 0 : 8;
+            RootBorder.Clip = new System.Windows.Media.RectangleGeometry(
+                new System.Windows.Rect(0, 0, RootBorder.ActualWidth, RootBorder.ActualHeight), r, r);
         }
 
     }

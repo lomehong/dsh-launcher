@@ -31,6 +31,7 @@ namespace DshLauncher.Gui.Services
         // Brush key -> (dark, light)
         private static readonly (string Key, string Dark, string Light)[] Palette = new[]
         {
+            // VSCode Modern 色板（紫蓝强调色保留）
             ("Brush.Primary",      "#6366F1", "#5B5BD6"),
             ("Brush.PrimaryHover", "#818CF8", "#6E6BE8"),
             ("Brush.PrimaryDim",   "#312E81", "#E0E7FF"),
@@ -40,26 +41,25 @@ namespace DshLauncher.Gui.Services
             ("Brush.WarnBg",       "#362B08", "#FEF3C7"),
             ("Brush.Error",        "#F87171", "#DC2626"),
             ("Brush.ErrorBg",      "#3B1214", "#FEE2E2"),
-            ("Brush.Info",         "#E6EDF3", "#1F2937"),
-            ("Brush.Muted",        "#9BA8BD", "#4B5563"),
-            ("Brush.Verbose",      "#5C6A82", "#6B7280"),
-            ("Brush.Bg",           "#0D1117", "#F4F6F9"),
-            ("Brush.Sidebar",      "#090C10", "#ECEFF4"),
-            ("Brush.PanelBg",      "#111722", "#FFFFFF"),
-            ("Brush.CardBg",       "#161D2B", "#FFFFFF"),
-            ("Brush.HoverBg",      "#1D2739", "#E8EDF4"),
-            ("Brush.Border",       "#232D42", "#D5DBE4"),
-            ("Brush.BorderSoft",   "#1A2234", "#E4E9F0"),
-            // 标题栏/日志等专用
-            ("Brush.CaptionGlyph", "#CFD8E6", "#4A4F5A"),
+            ("Brush.Info",         "#CCCCCC", "#3B3B3B"),     // VSCode foreground
+            ("Brush.Muted",        "#9D9D9D", "#616161"),     // descriptionForeground
+            ("Brush.Verbose",      "#6F6F6F", "#8B8B8B"),
+            ("Brush.Bg",           "#1F1F1E", "#F8F8F8"),     // editor.background
+            ("Brush.Sidebar",      "#181818", "#F9F8F8"),     // sideBar/titleBar/panel
+            ("Brush.PanelBg",      "#313131", "#FFFFFF"),     // input.background
+            ("Brush.CardBg",       "#212121", "#FFFFFF"),
+            ("Brush.HoverBg",      "#2A2D2E", "#E8E8E8"),     // list.hoverBackground
+            ("Brush.Border",       "#333333", "#D0D0D0"),
+            ("Brush.BorderSoft",   "#2B2B2B", "#E5E5E5"),     // VSCode 边框色
+            ("Brush.CaptionGlyph", "#CCCCCC", "#5F5F5F"),
             ("Brush.CaptionHover", "#16FFFFFF", "#14000000"),
             ("Brush.CaptionPress", "#28FFFFFF", "#22000000"),
-            ("Brush.LogText",      "#C9D4E4", "#24303F"),
-            // 日志级别专用色：日志面板底是 Sidebar(#090C10)，全局 Verbose(#5C6A82) 在其上
-            // 对比度仅 ~2.4:1 不可读——日志用更亮一档的独立色板
-            ("Brush.LogVerbose",    "#8B99B0", "#5B6472"),
-            ("Brush.LogInfo",       "#D6DEEA", "#1F2937"),
+            ("Brush.LogText",      "#D4D4D4", "#3B3B3B"),
+            ("Brush.LogVerbose",   "#9C9C9C", "#616161"),
+            ("Brush.LogInfo",      "#D4D4D4", "#3B3B3B"),
             ("Brush.PrimaryText",  "#A5B4FC", "#4F46E5"),
+            ("Brush.ScrollThumb",  "#3F3F3F", "#C9C9C9"),
+            ("Brush.ListSelectedBg","#343257","#E4E1FA"),
         };
 
         /// <summary>启动时调用：读偏好 -> 应用 -> 注册系统主题监听。</summary>

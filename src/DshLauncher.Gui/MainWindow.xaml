@@ -5,16 +5,16 @@
         Title="DeepSeek Harness (dsh) 启动器"
         Height="820" Width="1280" MinHeight="660" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
+        Background="Transparent"
         StateChanged="Window_StateChanged"
-        Icon="pack://siteoforigin:,,,/app.ico"
-        Background="{DynamicResource Brush.Bg}">
+        Icon="pack://siteoforigin:,,,/app.ico">
     <!-- WindowChrome：接管整个窗口框架——客户区铺满（消除 Win11 顶部 DWM 浅色边），
          CaptionHeight 提供标题栏拖拽/双击最大化，ResizeBorderThickness 提供原生边缘缩放 -->
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="40"
                       ResizeBorderThickness="6"
                       GlassFrameThickness="0"
-                      CornerRadius="0"
+                      CornerRadius="8"
                       UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
@@ -84,7 +84,8 @@
     </Window.Resources>
 
     <Border x:Name="RootBorder" Background="{DynamicResource Brush.Bg}"
-            BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="1">
+            BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="1"
+            CornerRadius="8" ClipToBounds="True">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
@@ -92,7 +93,9 @@
             </Grid.RowDefinitions>
 
             <!-- ========== 自定义标题栏（拖拽/缩放由 WindowChrome 提供） ========== -->
-            <Grid x:Name="TitleBar" Grid.Row="0" Background="Transparent">
+            <Grid x:Name="TitleBar" Grid.Row="0" Background="{DynamicResource Brush.Sidebar}">
+                <Border VerticalAlignment="Bottom" Height="1"
+                        Background="{DynamicResource Brush.BorderSoft}"/>
                 <StackPanel Orientation="Horizontal" Margin="14,0,0,0">
                     <Image x:Name="TitleIcon" Width="18" Height="18"
                            VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -152,7 +155,7 @@
                         BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="0,0,1,0">
                     <DockPanel LastChildFill="False">
                         <!-- 品牌区 -->
-                        <StackPanel DockPanel.Dock="Top" Margin="18,14,12,4">
+                        <StackPanel DockPanel.Dock="Top" Margin="14,10,12,4">
                             <StackPanel Orientation="Horizontal">
                                 <Border Width="36" Height="36" CornerRadius="9"
                                         Background="{DynamicResource Brush.Primary}">

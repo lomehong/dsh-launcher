@@ -5,80 +5,65 @@
     <Application.Resources>
         <ResourceDictionary>
 
-            <!-- ========== 暗色 IDE 调色板 ========== -->
-            <Color x:Key="C.Primary">#6366F1</Color>
-            <Color x:Key="C.PrimaryHover">#818CF8</Color>
-            <Color x:Key="C.PrimaryDim">#312E81</Color>
-            <Color x:Key="C.Ok">#34D399</Color>
-            <Color x:Key="C.OkBg">#052E21</Color>
-            <Color x:Key="C.Warn">#FBBF24</Color>
-            <Color x:Key="C.WarnBg">#362B08</Color>
-            <Color x:Key="C.Error">#F87171</Color>
-            <Color x:Key="C.ErrorBg">#3B1214</Color>
-            <!-- 背景层次：最深(侧栏) → 面板 → 卡片 -->
-            <Color x:Key="C.Bg">#0D1117</Color>
-            <Color x:Key="C.Sidebar">#090C10</Color>
-            <Color x:Key="C.Panel">#111722</Color>
-            <Color x:Key="C.Card">#161D2B</Color>
-            <Color x:Key="C.Hover">#1D2739</Color>
-            <Color x:Key="C.Border">#232D42</Color>
-            <Color x:Key="C.BorderSoft">#1A2234</Color>
-            <!-- 文字层次 -->
-            <Color x:Key="C.Text">#E6EDF3</Color>
-            <Color x:Key="C.TextSoft">#9BA8BD</Color>
-            <Color x:Key="C.TextMuted">#5C6A82</Color>
-
-            <SolidColorBrush x:Key="Brush.Primary" Color="{StaticResource C.Primary}"/>
-            <SolidColorBrush x:Key="Brush.PrimaryHover" Color="{StaticResource C.PrimaryHover}"/>
-            <SolidColorBrush x:Key="Brush.PrimaryDim" Color="{StaticResource C.PrimaryDim}"/>
-            <SolidColorBrush x:Key="Brush.Ok" Color="{StaticResource C.Ok}"/>
-            <SolidColorBrush x:Key="Brush.OkBg" Color="{StaticResource C.OkBg}"/>
-            <SolidColorBrush x:Key="Brush.Warn" Color="{StaticResource C.Warn}"/>
-            <SolidColorBrush x:Key="Brush.WarnBg" Color="{StaticResource C.WarnBg}"/>
-            <SolidColorBrush x:Key="Brush.Error" Color="{StaticResource C.Error}"/>
-            <SolidColorBrush x:Key="Brush.ErrorBg" Color="{StaticResource C.ErrorBg}"/>
-            <SolidColorBrush x:Key="Brush.Info" Color="{StaticResource C.Text}"/>
-            <SolidColorBrush x:Key="Brush.Verbose" Color="{StaticResource C.TextMuted}"/>
-            <SolidColorBrush x:Key="Brush.Muted" Color="{StaticResource C.TextSoft}"/>
-            <SolidColorBrush x:Key="Brush.Bg" Color="{StaticResource C.Bg}"/>
-            <SolidColorBrush x:Key="Brush.Sidebar" Color="{StaticResource C.Sidebar}"/>
-            <SolidColorBrush x:Key="Brush.PanelBg" Color="{StaticResource C.Panel}"/>
-            <SolidColorBrush x:Key="Brush.CardBg" Color="{StaticResource C.Card}"/>
-            <SolidColorBrush x:Key="Brush.HoverBg" Color="{StaticResource C.Hover}"/>
-            <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource C.Border}"/>
-            <SolidColorBrush x:Key="Brush.BorderSoft" Color="{StaticResource C.BorderSoft}"/>
-            <SolidColorBrush x:Key="Brush.CaptionGlyph" Color="#CFD8E6"/>
+            <!-- ============================================================
+                 VSCode 设计语言（Dark Modern / Light Modern 色板，紫蓝强调色）
+                 深色: chrome #181818 / 编辑区 #1F1F1E / 边框 #2B2B2B-#333333
+                 浅色: chrome #F9F8F8 / 编辑区 #F8F8F8 / 边框 #E5E5E5-#D0D0D0
+                 值由 ThemeManager 运行时按主题整体替换（DynamicResource 引用）
+                 ============================================================ -->
+            <SolidColorBrush x:Key="Brush.Primary" Color="#6366F1"/>
+            <SolidColorBrush x:Key="Brush.PrimaryHover" Color="#818CF8"/>
+            <SolidColorBrush x:Key="Brush.PrimaryDim" Color="#312E81"/>
+            <SolidColorBrush x:Key="Brush.Ok" Color="#34D399"/>
+            <SolidColorBrush x:Key="Brush.OkBg" Color="#052E21"/>
+            <SolidColorBrush x:Key="Brush.Warn" Color="#FBBF24"/>
+            <SolidColorBrush x:Key="Brush.WarnBg" Color="#362B08"/>
+            <SolidColorBrush x:Key="Brush.Error" Color="#F87171"/>
+            <SolidColorBrush x:Key="Brush.ErrorBg" Color="#3B1214"/>
+            <SolidColorBrush x:Key="Brush.Info" Color="#CCCCCC"/>
+            <SolidColorBrush x:Key="Brush.Muted" Color="#9D9D9D"/>
+            <SolidColorBrush x:Key="Brush.Verbose" Color="#6F6F6F"/>
+            <SolidColorBrush x:Key="Brush.Bg" Color="#1F1F1E"/>
+            <SolidColorBrush x:Key="Brush.Sidebar" Color="#181818"/>
+            <SolidColorBrush x:Key="Brush.PanelBg" Color="#313131"/>
+            <SolidColorBrush x:Key="Brush.CardBg" Color="#212121"/>
+            <SolidColorBrush x:Key="Brush.HoverBg" Color="#2A2D2E"/>
+            <SolidColorBrush x:Key="Brush.Border" Color="#333333"/>
+            <SolidColorBrush x:Key="Brush.BorderSoft" Color="#2B2B2B"/>
+            <SolidColorBrush x:Key="Brush.CaptionGlyph" Color="#CCCCCC"/>
             <SolidColorBrush x:Key="Brush.CaptionHover" Color="#16FFFFFF"/>
             <SolidColorBrush x:Key="Brush.CaptionPress" Color="#28FFFFFF"/>
-            <SolidColorBrush x:Key="Brush.LogText" Color="#C9D4E4"/>
-            <SolidColorBrush x:Key="Brush.LogVerbose" Color="#8B99B0"/>
-            <SolidColorBrush x:Key="Brush.LogInfo" Color="#D6DEEA"/>
+            <SolidColorBrush x:Key="Brush.LogText" Color="#D4D4D4"/>
+            <SolidColorBrush x:Key="Brush.LogVerbose" Color="#9C9C9C"/>
+            <SolidColorBrush x:Key="Brush.LogInfo" Color="#D4D4D4"/>
             <SolidColorBrush x:Key="Brush.PrimaryText" Color="#A5B4FC"/>
+            <SolidColorBrush x:Key="Brush.ScrollThumb" Color="#3F3F3F"/>
+            <SolidColorBrush x:Key="Brush.ListSelectedBg" Color="#343257"/>
 
-            <!-- ========== 全局字体 ========== -->
+            <!-- ========== 全局字体（VSCode：拉丁 Segoe UI，中文雅黑） ========== -->
             <Style TargetType="Window">
-                <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
             </Style>
             <Style TargetType="UserControl">
-                <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI"/>
+                <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI"/>
             </Style>
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
             </Style>
 
-            <!-- ========== 按钮（暗色扁平） ========== -->
+            <!-- ========== 按钮（VSCode secondary：扁平 + 1px 边框 + 4px 圆角） ========== -->
             <Style TargetType="Button">
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
                 <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
-                <Setter Property="Padding" Value="14,7"/>
+                <Setter Property="Padding" Value="12,6"/>
                 <Setter Property="MinWidth" Value="84"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontSize" Value="12.5"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="bd" CornerRadius="6"
+                            <Border x:Name="bd" CornerRadius="4"
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="1"
@@ -102,17 +87,17 @@
                 </Setter>
             </Style>
 
-            <!-- 主按钮（品牌实心） -->
+            <!-- 主按钮（强调色实心，VSCode primary） -->
             <Style x:Key="BtnPrimary" TargetType="Button">
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="Background" Value="{DynamicResource Brush.Primary}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Padding" Value="16,8"/>
+                <Setter Property="Padding" Value="14,6"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="bd" CornerRadius="6"
+                            <Border x:Name="bd" CornerRadius="4"
                                     Background="{TemplateBinding Background}"
                                     Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -138,34 +123,29 @@
                 <Setter Property="Background" Value="{DynamicResource Brush.Error}"/>
             </Style>
 
-            <!-- ========== 侧边导航项 ========== -->
+            <!-- ========== 侧边导航项（VSCode 列表：整行高亮 + 细焦点边） ========== -->
             <Style x:Key="NavItem" TargetType="ListBoxItem">
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
-                <Setter Property="FontSize" Value="13.5"/>
+                <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Margin" Value="10,2"/>
+                <Setter Property="Margin" Value="8,1"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Grid>
-                                <!-- 选中指示条 -->
-                                <Border x:Name="indicator" Width="3" CornerRadius="2"
-                                        HorizontalAlignment="Left" Margin="0,8"
-                                        Background="Transparent"/>
-                                <Border x:Name="bd" CornerRadius="7" Padding="14,9" Margin="5,0,8,0"
-                                        Background="Transparent">
-                                    <ContentPresenter VerticalAlignment="Center"/>
-                                </Border>
-                            </Grid>
+                            <Border x:Name="bd" CornerRadius="4" Padding="10,7"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent" BorderThickness="1">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.HoverBg}"/>
-                                    <Setter TargetName="indicator" Property="Background" Value="{DynamicResource Brush.Primary}"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.BorderSoft}"/>
+                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.HoverBg}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.ListSelectedBg}"/>
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -173,23 +153,23 @@
                 </Setter>
             </Style>
 
-            <!-- ========== 卡片 ========== -->
+            <!-- ========== 卡片（VSCode 设置页容器：平铺 + 1px 边框 + 8px 圆角） ========== -->
             <Style x:Key="Card" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSoft}"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="10"/>
-                <Setter Property="Padding" Value="18,16"/>
-                <Setter Property="Margin" Value="0,0,0,12"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding" Value="16,14"/>
+                <Setter Property="Margin" Value="0,0,0,10"/>
                 <Setter Property="HorizontalAlignment" Value="Stretch"/>
             </Style>
             <Style x:Key="CardTitle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="14.5"/>
+                <Setter Property="FontSize" Value="13.5"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
             </Style>
             <Style x:Key="CardSub" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="12.5"/>
+                <Setter Property="FontSize" Value="12"/>
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
             </Style>
 
@@ -201,22 +181,47 @@
                 <Setter Property="Margin" Value="28,24,28,24"/>
             </Style>
 
-            <!-- ========== 输入 ========== -->
-            <!-- TextBox：只用默认模板，仅覆盖颜色（自定义模板曾致内容垂直裁剪） -->
+            <!-- ========== 输入（VSCode input：#313131 底 + 聚焦强调色描边 + 4px 圆角） ========== -->
             <Style TargetType="TextBox">
-                <Setter Property="Padding" Value="9,7"/>
+                <Setter Property="Padding" Value="9,6"/>
                 <Setter Property="Background" Value="{DynamicResource Brush.PanelBg}"/>
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
                 <Setter Property="CaretBrush" Value="{DynamicResource Brush.Primary}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="bd" CornerRadius="4"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center" Focusable="False"
+                                              HorizontalScrollBarVisibility="Hidden"
+                                              VerticalScrollBarVisibility="Hidden"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Brush.Verbose}"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.35"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
-            <!-- ComboBox：完整暗色模板（下拉弹层、箭头、输入框全暗） -->
+            <!-- ComboBox（VSCode select：4px 圆角、下拉弹层同主题） -->
             <Style TargetType="ComboBox">
-                <Setter Property="Padding" Value="10,7"/>
-                <Setter Property="Height" Value="36"/>
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="Height" Value="34"/>
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
@@ -228,7 +233,7 @@
                                               IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
-                                            <Border x:Name="bd" CornerRadius="6"
+                                            <Border x:Name="bd" CornerRadius="4"
                                                     Background="{DynamicResource Brush.PanelBg}"
                                                     BorderBrush="{DynamicResource Brush.Border}"
                                                     BorderThickness="1">
@@ -252,7 +257,7 @@
                                 <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
                                        Placement="Bottom" AllowsTransparency="True"
                                        PopupAnimation="Fade" Focusable="False">
-                                    <Border CornerRadius="8" Margin="0,4,0,0"
+                                    <Border CornerRadius="6" Margin="0,4,0,0"
                                             Background="{DynamicResource Brush.CardBg}"
                                             BorderBrush="{DynamicResource Brush.Border}"
                                             BorderThickness="1" MinWidth="{TemplateBinding ActualWidth}">
@@ -272,12 +277,12 @@
 
             <Style TargetType="ComboBoxItem">
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
-                <Setter Property="Padding" Value="10,7"/>
+                <Setter Property="Padding" Value="10,6"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">
-                            <Border x:Name="bd" CornerRadius="5" Padding="{TemplateBinding Padding}"
+                            <Border x:Name="bd" CornerRadius="4" Padding="{TemplateBinding Padding}"
                                     Background="Transparent" Margin="1">
                                 <ContentPresenter VerticalAlignment="Center"/>
                             </Border>
@@ -296,7 +301,7 @@
                 </Setter>
             </Style>
 
-            <!-- CheckBox：暗色方块 + 品牌勾选 -->
+            <!-- CheckBox（VSCode 方块 + 强调色勾选） -->
             <Style TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -305,10 +310,10 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="CheckBox">
                             <StackPanel Orientation="Horizontal" Background="Transparent">
-                                <Border x:Name="box" Width="17" Height="17" CornerRadius="4"
+                                <Border x:Name="box" Width="16" Height="16" CornerRadius="3"
                                         Background="{DynamicResource Brush.PanelBg}"
                                         BorderBrush="{DynamicResource Brush.Border}"
-                                        BorderThickness="1.2"
+                                        BorderThickness="1"
                                         VerticalAlignment="Center">
                                     <Path x:Name="check" Data="M 2.5 6 L 5.5 9 L 10.5 2.5"
                                           Stroke="White" StrokeThickness="2"
@@ -332,7 +337,7 @@
                 </Setter>
             </Style>
 
-            <!-- RadioButton：暗色圆点 + 品牌选中 -->
+            <!-- RadioButton（VSCode 圆点 + 强调色选中） -->
             <Style TargetType="RadioButton">
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -341,12 +346,12 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="RadioButton">
                             <StackPanel Orientation="Horizontal" Background="Transparent">
-                                <Border x:Name="outer" Width="17" Height="17" CornerRadius="9"
+                                <Border x:Name="outer" Width="16" Height="16" CornerRadius="8"
                                         Background="{DynamicResource Brush.PanelBg}"
                                         BorderBrush="{DynamicResource Brush.Border}"
-                                        BorderThickness="1.2"
+                                        BorderThickness="1"
                                         VerticalAlignment="Center">
-                                    <Ellipse x:Name="dot" Width="7" Height="7"
+                                    <Ellipse x:Name="dot" Width="6" Height="6"
                                              Fill="{DynamicResource Brush.Primary}"
                                              HorizontalAlignment="Center" VerticalAlignment="Center"
                                              Visibility="Collapsed"/>
@@ -388,20 +393,20 @@
                 </Setter>
             </Style>
 
-            <!-- ========== 滚动条 ========== -->
+            <!-- ========== 滚动条（VSCode 细条 overlay 风） ========== -->
             <Style TargetType="ScrollBar">
-                <Setter Property="Width" Value="9"/>
+                <Setter Property="Width" Value="10"/>
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollBar">
                             <Track x:Name="PART_Track" IsDirectionReversed="True">
                                 <Track.Thumb>
-                                    <Thumb>
+                                    <Thumb Focusable="False">
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border CornerRadius="4" Margin="2"
-                                                        Background="{DynamicResource Brush.Border}"/>
+                                                <Border CornerRadius="3" Margin="3,2"
+                                                        Background="{DynamicResource Brush.ScrollThumb}"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -423,12 +428,12 @@
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Info}"/>
             </Style>
             <Style TargetType="DataGridColumnHeader">
-                <Setter Property="Background" Value="{DynamicResource Brush.PanelBg}"/>
+                <Setter Property="Background" Value="{DynamicResource Brush.Sidebar}"/>
                 <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="FontSize" Value="12"/>
-                <Setter Property="Padding" Value="10,9"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="Padding" Value="10,8"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSoft}"/>
                 <Setter Property="BorderThickness" Value="0,0,0,1"/>
             </Style>
             <Style TargetType="DataGridCell">
