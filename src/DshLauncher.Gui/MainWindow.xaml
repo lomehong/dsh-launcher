@@ -94,7 +94,7 @@
             <!-- ========== 自定义标题栏（拖拽/缩放由 WindowChrome 提供） ========== -->
             <Grid x:Name="TitleBar" Grid.Row="0" Background="Transparent">
                 <StackPanel Orientation="Horizontal" Margin="14,0,0,0">
-                    <Image Source="pack://siteoforigin:,,,/app.ico" Width="18" Height="18"
+                    <Image x:Name="TitleIcon" Width="18" Height="18"
                            VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <TextBlock Text="DeepSeek Harness (dsh) 启动器" FontSize="12"
                                Foreground="{DynamicResource Brush.Muted}"

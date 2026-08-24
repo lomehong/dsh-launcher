@@ -26,5 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Resource Include="whale_dark.png" />
+    <Resource Include="whale_light.png" />
   </ItemGroup>
 </Project>

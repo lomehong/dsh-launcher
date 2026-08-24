@@ -32,6 +32,7 @@ namespace DshLauncher.Gui
 
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
+            Services.ThemeManager.Applied += ApplyTitleIcon;   // 主题切换 -> 标题栏鲸鱼随之反色
         }
 
         /// <summary>侧边导航切换：切换 ContentArea 里四个视图的可见性。</summary>
@@ -47,9 +48,26 @@ namespace DshLauncher.Gui
 
         private void MainWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
+            ApplyTitleIcon();
             RefreshPortStatus();
             RefreshDashboard();
             RefreshWebStatus();
+        }
+
+        /// <summary>标题栏鲸鱼跟随主题：深色主题用浅色鲸鱼（纯黑在 #0D1117 底上不可见），浅色主题用黑鲸鱼。</summary>
+        private void ApplyTitleIcon()
+        {
+            if (TitleIcon == null) return;
+            try
+            {
+                // 相对 pack URI：解析到本程序集（程序集名是 dsh-launcher-gui，不能写死命名空间）
+                var uri = new Uri("whale_" + (Services.ThemeManager.IsDarkEffective ? "light" : "dark") + ".png", UriKind.Relative);
+                TitleIcon.Source = new System.Windows.Media.Imaging.BitmapImage(uri);
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Warn("[提示] 标题栏图标加载失败: " + ex.Message);
+            }
         }
 
         private void RefreshPortStatus()
@@ -261,6 +279,7 @@ namespace DshLauncher.Gui
         /// </summary>
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
+            Services.ThemeManager.Applied -= ApplyTitleIcon;
             if (!_reallyExit && App.TrayIcon != null)
             {
                 e.Cancel = true;
