@@ -95,7 +95,7 @@ namespace DshLauncher.Gui.Services
                     var note = new Paragraph(new Run("…（日志过快，部分行已省略；完整日志见文件）"))
                     {
                         Margin = new Thickness(0),
-                        Foreground = (Brush)Application.Current.Resources["Brush.Verbose"],
+                        Foreground = (Brush)Application.Current.Resources["Brush.LogVerbose"],
                     };
                     doc.Blocks.Add(note);
                 }
@@ -124,9 +124,9 @@ namespace DshLauncher.Gui.Services
             {
                 LogLevel.Error => (Brush)app.Resources["Brush.Error"],
                 LogLevel.Warn => (Brush)app.Resources["Brush.Warn"],
-                LogLevel.Verbose => (Brush)app.Resources["Brush.Verbose"],
-                LogLevel.Silent => (Brush)app.Resources["Brush.Verbose"],
-                _ => (Brush)app.Resources["Brush.Info"],
+                LogLevel.Verbose => (Brush)app.Resources["Brush.LogVerbose"],
+                LogLevel.Silent => (Brush)app.Resources["Brush.LogVerbose"],
+                _ => (Brush)app.Resources["Brush.LogInfo"],
             };
         }
     }

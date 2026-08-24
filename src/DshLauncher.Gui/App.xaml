@@ -50,7 +50,9 @@
             <SolidColorBrush x:Key="Brush.CaptionGlyph" Color="#CFD8E6"/>
             <SolidColorBrush x:Key="Brush.CaptionHover" Color="#16FFFFFF"/>
             <SolidColorBrush x:Key="Brush.CaptionPress" Color="#28FFFFFF"/>
-            <SolidColorBrush x:Key="Brush.LogText" Color="#B8C4D6"/>
+            <SolidColorBrush x:Key="Brush.LogText" Color="#C9D4E4"/>
+            <SolidColorBrush x:Key="Brush.LogVerbose" Color="#8B99B0"/>
+            <SolidColorBrush x:Key="Brush.LogInfo" Color="#D6DEEA"/>
             <SolidColorBrush x:Key="Brush.PrimaryText" Color="#A5B4FC"/>
 
             <!-- ========== 全局字体 ========== -->

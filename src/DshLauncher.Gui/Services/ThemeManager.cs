@@ -54,7 +54,11 @@ namespace DshLauncher.Gui.Services
             ("Brush.CaptionGlyph", "#CFD8E6", "#4A4F5A"),
             ("Brush.CaptionHover", "#16FFFFFF", "#14000000"),
             ("Brush.CaptionPress", "#28FFFFFF", "#22000000"),
-            ("Brush.LogText",      "#B8C4D6", "#24303F"),
+            ("Brush.LogText",      "#C9D4E4", "#24303F"),
+            // 日志级别专用色：日志面板底是 Sidebar(#090C10)，全局 Verbose(#5C6A82) 在其上
+            // 对比度仅 ~2.4:1 不可读——日志用更亮一档的独立色板
+            ("Brush.LogVerbose",    "#8B99B0", "#5B6472"),
+            ("Brush.LogInfo",       "#D6DEEA", "#1F2937"),
             ("Brush.PrimaryText",  "#A5B4FC", "#4F46E5"),
         };
 
