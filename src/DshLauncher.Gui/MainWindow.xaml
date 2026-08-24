@@ -9,7 +9,7 @@
         StateChanged="Window_StateChanged"
         Icon="pack://siteoforigin:,,,/app.ico">
     <!-- WindowChrome：接管整个窗口框架——客户区铺满（消除 Win11 顶部 DWM 浅色边），
-         CaptionHeight 提供标题栏拖拽/双击最大化，ResizeBorderThickness 提供原生边缘缩放 -->
+         CaptionHeight=40 使顶部 40px 全宽为标题栏（拖拽/双击最大化），ResizeBorderThickness 提供原生边缘缩放 -->
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="40"
                       ResizeBorderThickness="6"
@@ -60,6 +60,14 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- 浮层大卡片（VSCode floating panel）：圆角 8 + 1px 边框，底色由主题的 CardBg 提供 -->
+        <Style x:Key="SurfaceCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+        </Style>
         <!-- 主题菜单行：跟主题的自绘行 -->
         <Style x:Key="ThemeMenuRow" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -83,148 +91,138 @@
         </Style>
     </Window.Resources>
 
-    <Border x:Name="RootBorder" Background="{DynamicResource Brush.Bg}"
+    <Border x:Name="RootBorder" Background="{DynamicResource Brush.Sidebar}"
             BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="1"
             CornerRadius="8" ClipToBounds="True">
         <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- ========== 自定义标题栏（拖拽/缩放由 WindowChrome 提供） ========== -->
-            <Grid x:Name="TitleBar" Grid.Row="0" Background="{DynamicResource Brush.Sidebar}">
-                <Border VerticalAlignment="Bottom" Height="1"
-                        Background="{DynamicResource Brush.BorderSoft}"/>
-                <StackPanel Orientation="Horizontal" Margin="14,0,0,0">
-                    <Image x:Name="TitleIcon" Width="18" Height="18"
-                           VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="DeepSeek Harness (dsh) 启动器" FontSize="12"
-                               Foreground="{DynamicResource Brush.Muted}"
-                               VerticalAlignment="Center" Margin="9,0,0,0"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="BtnTheme" Style="{StaticResource CaptionBtn}"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
-                            Click="BtnTheme_Click" ToolTip="切换主题（浅色 / 深色 / 自动）">
-                        <Grid>
-                            <Ellipse Width="12" Height="12" StrokeThickness="1.3"
-                                     Stroke="{DynamicResource Brush.CaptionGlyph}" Fill="Transparent"/>
-                            <Path Data="M 6 0.65 A 5.35 5.35 0 0 0 6 11.35 Z"
-                                  Fill="{DynamicResource Brush.CaptionGlyph}"/>
-                        </Grid>
-                    </Button>
-                    <Button x:Name="BtnMin" Style="{StaticResource CaptionBtn}"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
-                            Click="BtnMin_Click" ToolTip="最小化">
-                        <Rectangle Width="10" Height="1" Fill="{DynamicResource Brush.CaptionGlyph}"/>
-                    </Button>
-                    <Button x:Name="BtnMax" Style="{StaticResource CaptionBtn}"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
-                            Click="BtnMax_Click" ToolTip="最大化 / 还原">
-                        <Grid>
-                            <Rectangle x:Name="MaxGlyph" Width="10" Height="10"
-                                       Stroke="{DynamicResource Brush.CaptionGlyph}" StrokeThickness="1" Fill="Transparent"/>
-                            <Canvas x:Name="RestoreGlyph" Visibility="Collapsed">
-                                <Rectangle Canvas.Left="3" Canvas.Top="0.5" Width="7" Height="7"
-                                           Stroke="{DynamicResource Brush.CaptionGlyph}" StrokeThickness="1" Fill="Transparent"/>
-                                <Rectangle Canvas.Left="0.5" Canvas.Top="3" Width="7" Height="7"
-                                           Stroke="{DynamicResource Brush.CaptionGlyph}" StrokeThickness="1" Fill="{DynamicResource Brush.Bg}"/>
-                            </Canvas>
-                        </Grid>
-                    </Button>
-                    <Button x:Name="BtnClose" Style="{StaticResource CaptionBtnClose}"
-                            WindowChrome.IsHitTestVisibleInChrome="True"
-                            Click="BtnClose_Click" ToolTip="关闭（最小化到托盘）">
-                        <Path Data="M 0,0 L 10,10 M 10,0 L 0,10" Stroke="{DynamicResource Brush.CaptionGlyph}"
-                              StrokeThickness="1.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                    </Button>
-                </StackPanel>
-            </Grid>
-
-            <!-- ========== 主内容（原布局） ========== -->
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- 左侧导航栏 -->
-                <Border Grid.Column="0"
-                        Background="{DynamicResource Brush.Sidebar}"
-                        BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="0,0,1,0">
-                    <DockPanel LastChildFill="False">
-                        <!-- 品牌区 -->
-                        <StackPanel DockPanel.Dock="Top" Margin="14,10,12,4">
-                            <StackPanel Orientation="Horizontal">
-                                <Border Width="36" Height="36" CornerRadius="9"
-                                        Background="{DynamicResource Brush.Primary}">
-                                    <TextBlock Text="dsh" Foreground="White" FontWeight="Bold"
-                                               FontSize="13" HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="DeepSeek Harness" FontSize="13.5" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="HeaderVersion" Text="v1.5.0" FontSize="11"
-                                               Foreground="{DynamicResource Brush.Verbose}"/>
-                                </StackPanel>
+            <!-- ========== 左侧导航栏（直通窗口顶部：品牌区即唯一的程序名） ========== -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource Brush.Sidebar}"
+                    BorderBrush="{DynamicResource Brush.BorderSoft}" BorderThickness="0,0,1,0">
+                <DockPanel LastChildFill="False">
+                    <!-- 品牌区 = 程序名称（标题栏文字已合并至此） -->
+                    <StackPanel DockPanel.Dock="Top" Margin="16,10,12,4">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="34" Height="34" CornerRadius="8"
+                                    Background="{DynamicResource Brush.Primary}">
+                                <Image x:Name="TitleIcon" Width="22" Height="22"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+                            <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="DeepSeek Harness" FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="HeaderVersion" Text="v1.5.0" FontSize="11"
+                                           Foreground="{DynamicResource Brush.Verbose}"/>
                             </StackPanel>
-                            <!-- 分隔线 -->
-                            <Border Height="1" Background="{DynamicResource Brush.BorderSoft}"
-                                    Margin="0,16,0,6"/>
                         </StackPanel>
+                        <!-- 分隔线 -->
+                        <Border Height="1" Background="{DynamicResource Brush.BorderSoft}"
+                                Margin="0,14,0,4"/>
+                    </StackPanel>
 
-                        <!-- 导航项 -->
-                        <ListBox x:Name="NavList" DockPanel.Dock="Top"
-                                 Background="Transparent" BorderThickness="0"
-                                 ItemContainerStyle="{StaticResource NavItem}"
-                                 SelectionChanged="NavList_SelectionChanged"
-                                 SelectedIndex="0">
-                            <ListBoxItem Content="总览"/>
-                            <ListBoxItem Content="插件"/>
-                            <ListBoxItem Content="设置"/>
-                            <ListBoxItem Content="高级"/>
-                        </ListBox>
+                    <!-- 导航项 -->
+                    <ListBox x:Name="NavList" DockPanel.Dock="Top"
+                             Background="Transparent" BorderThickness="0"
+                             ItemContainerStyle="{StaticResource NavItem}"
+                             SelectionChanged="NavList_SelectionChanged"
+                             SelectedIndex="0">
+                        <ListBoxItem Content="总览"/>
+                        <ListBoxItem Content="插件"/>
+                        <ListBoxItem Content="设置"/>
+                        <ListBoxItem Content="高级"/>
+                    </ListBox>
 
-                        <!-- 底部：web 状态徽章 -->
-                        <Border DockPanel.Dock="Bottom" Margin="14,10,14,16" CornerRadius="8"
-                                Background="{DynamicResource Brush.PanelBg}" Padding="12,9">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse x:Name="WebStatusDot" Width="8" Height="8"
-                                             Fill="{DynamicResource Brush.Verbose}"
-                                             VerticalAlignment="Center" Margin="0,0,7,0"/>
-                                    <TextBlock x:Name="WebStatusText" Text="web 未运行" FontSize="12.5"
-                                               Foreground="{DynamicResource Brush.Muted}"/>
-                                </StackPanel>
-                                <TextBlock x:Name="PortText" Text="端口 3080 · 空闲" FontSize="10.5"
-                                           Foreground="{DynamicResource Brush.Verbose}" Margin="15,4,0,0"/>
+                    <!-- 底部：web 状态徽章 -->
+                    <Border DockPanel.Dock="Bottom" Margin="12,10,12,14" CornerRadius="8"
+                            Background="{DynamicResource Brush.PanelBg}" Padding="12,9">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse x:Name="WebStatusDot" Width="8" Height="8"
+                                         Fill="{DynamicResource Brush.Verbose}"
+                                         VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                <TextBlock x:Name="WebStatusText" Text="web 未运行" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Muted}"/>
                             </StackPanel>
-                        </Border>
-                    </DockPanel>
-                </Border>
+                            <TextBlock x:Name="PortText" Text="端口 3080 · 空闲" FontSize="10.5"
+                                       Foreground="{DynamicResource Brush.Verbose}" Margin="15,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </DockPanel>
+            </Border>
 
-                <!-- 主内容 + 日志（右侧上下分栏） -->
-                <Grid Grid.Column="1">
+            <!-- ========== 右侧列：标题条(仅窗口按钮) + 两张浮层卡片 ========== -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- 标题条：透明背景，右侧窗口按钮（顶部 40px 由 WindowChrome 提供拖拽） -->
+                <Grid Grid.Row="0" Background="Transparent">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="BtnTheme" Style="{StaticResource CaptionBtn}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                Click="BtnTheme_Click" ToolTip="切换主题（浅色 / 深色 / 自动）">
+                            <Grid>
+                                <Ellipse Width="12" Height="12" StrokeThickness="1.3"
+                                         Stroke="{DynamicResource Brush.CaptionGlyph}" Fill="Transparent"/>
+                                <Path Data="M 6 0.65 A 5.35 5.35 0 0 0 6 11.35 Z"
+                                      Fill="{DynamicResource Brush.CaptionGlyph}"/>
+                            </Grid>
+                        </Button>
+                        <Button x:Name="BtnMin" Style="{StaticResource CaptionBtn}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                Click="BtnMin_Click" ToolTip="最小化">
+                            <Rectangle Width="10" Height="1" Fill="{DynamicResource Brush.CaptionGlyph}"/>
+                        </Button>
+                        <Button x:Name="BtnMax" Style="{StaticResource CaptionBtn}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                Click="BtnMax_Click" ToolTip="最大化 / 还原">
+                            <Grid>
+                                <Rectangle x:Name="MaxGlyph" Width="10" Height="10"
+                                           Stroke="{DynamicResource Brush.CaptionGlyph}" StrokeThickness="1" Fill="Transparent"/>
+                                <Canvas x:Name="RestoreGlyph" Visibility="Collapsed">
+                                    <Rectangle Canvas.Left="3" Canvas.Top="0.5" Width="7" Height="7"
+                                               Stroke="{DynamicResource Brush.CaptionGlyph}" StrokeThickness="1" Fill="Transparent"/>
+                                    <Rectangle Canvas.Left="0.5" Canvas.Top="3" Width="7" Height="7"
+                                               Stroke="{DynamicResource Brush.CaptionGlyph}" StrokeThickness="1" Fill="{DynamicResource Brush.Sidebar}"/>
+                                </Canvas>
+                            </Grid>
+                        </Button>
+                        <Button x:Name="BtnClose" Style="{StaticResource CaptionBtnClose}"
+                                WindowChrome.IsHitTestVisibleInChrome="True"
+                                Click="BtnClose_Click" ToolTip="关闭（最小化到托盘）">
+                            <Path Data="M 0,0 L 10,10 M 10,0 L 0,10" Stroke="{DynamicResource Brush.CaptionGlyph}"
+                                  StrokeThickness="1.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 卡片区：chrome 底上浮两张圆角大卡片（内容 + 日志），四周留白、中间 10px 间隙 -->
+                <Grid Grid.Row="1" Margin="10,4,10,10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition x:Name="LogRow" Height="200"/>
                     </Grid.RowDefinitions>
 
-                    <!-- 内容区 -->
-                    <Grid Grid.Row="0" x:Name="ContentArea" Margin="26,16,26,14">
-                        <v:DashboardView x:Name="DashboardView"/>
-                        <v:PluginsView x:Name="PluginsView" Visibility="Collapsed"/>
-                        <v:SettingsView x:Name="SettingsView" Visibility="Collapsed"/>
-                        <v:AdvancedView x:Name="AdvancedView" Visibility="Collapsed"/>
-                    </Grid>
+                    <!-- 卡片一：页面内容 -->
+                    <Border Grid.Row="0" Style="{StaticResource SurfaceCard}">
+                        <Grid x:Name="ContentArea" Margin="8,6,8,8">
+                            <v:DashboardView x:Name="DashboardView"/>
+                            <v:PluginsView x:Name="PluginsView" Visibility="Collapsed"/>
+                            <v:SettingsView x:Name="SettingsView" Visibility="Collapsed"/>
+                            <v:AdvancedView x:Name="AdvancedView" Visibility="Collapsed"/>
+                        </Grid>
+                    </Border>
 
-                    <!-- 分隔条 -->
-                    <Border Grid.Row="0" VerticalAlignment="Bottom" Height="1"
-                            Background="{DynamicResource Brush.BorderSoft}"/>
-
-                    <!-- 日志面板（终端风） -->
-                    <Border Grid.Row="1" Background="{DynamicResource Brush.Sidebar}">
+                    <!-- 卡片二：终端日志 -->
+                    <Border Grid.Row="2" Style="{StaticResource SurfaceCard}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -232,7 +230,7 @@
                             </Grid.RowDefinitions>
 
                             <!-- 日志工具条 -->
-                            <DockPanel Grid.Row="0" Margin="18,9,18,5" LastChildFill="False">
+                            <DockPanel Grid.Row="0" Margin="14,9,14,5" LastChildFill="False">
                                 <TextBlock Text="终端日志" Foreground="{DynamicResource Brush.Muted}"
                                            FontSize="12" FontWeight="SemiBold"
                                            VerticalAlignment="Center" Margin="0,0,14,0"/>
@@ -267,67 +265,67 @@
                                          Background="Transparent"
                                          Foreground="{DynamicResource Brush.LogText}"
                                          BorderThickness="0"
-                                         Padding="18,2,14,8"/>
+                                         Padding="14,2,10,8"/>
                         </Grid>
                     </Border>
                 </Grid>
             </Grid>
 
-        <!-- 主题菜单：自绘 Popup（跟当前主题；StaysOpen=False 点外部自动关闭） -->
-        <Popup x:Name="ThemePopup" StaysOpen="False" AllowsTransparency="True"
-               PlacementTarget="{Binding ElementName=BtnTheme}"
-               Placement="Bottom" HorizontalOffset="-152" VerticalOffset="2">
-            <Border CornerRadius="8" MinWidth="196" Margin="8"
-                    Background="{DynamicResource Brush.CardBg}"
-                    BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
-                    Padding="5,4">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35"/>
-                </Border.Effect>
-                <StackPanel>
-                    <Button x:Name="RowLight" Style="{StaticResource ThemeMenuRow}" Tag="light" Click="ThemeItem_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="11" Height="11" Fill="#FBBF24"/>
-                            <TextBlock Text="浅色" Margin="10,0,0,0" FontSize="12.5"
-                                       Foreground="{DynamicResource Brush.Info}" VerticalAlignment="Center"/>
-                            <Path x:Name="RowLightCheck" Data="M 0 4 L 3 7 L 8.5 0.5" Visibility="Collapsed"
-                                  Stroke="{DynamicResource Brush.Primary}" StrokeThickness="1.8"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Margin="14,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button x:Name="RowDark" Style="{StaticResource ThemeMenuRow}" Tag="dark" Click="ThemeItem_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="11" Height="11" Fill="#6366F1"/>
-                            <TextBlock Text="深色" Margin="10,0,0,0" FontSize="12.5"
-                                       Foreground="{DynamicResource Brush.Info}" VerticalAlignment="Center"/>
-                            <Path x:Name="RowDarkCheck" Data="M 0 4 L 3 7 L 8.5 0.5" Visibility="Collapsed"
-                                  Stroke="{DynamicResource Brush.Primary}" StrokeThickness="1.8"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Margin="14,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button x:Name="RowAuto" Style="{StaticResource ThemeMenuRow}" Tag="auto" Click="ThemeItem_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="11" Height="11">
-                                <Ellipse.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Offset="0.5" Color="#FBBF24"/>
-                                        <GradientStop Offset="0.5" Color="#6366F1"/>
-                                    </LinearGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
-                            <TextBlock Text="自动（跟随系统）" Margin="10,0,0,0" FontSize="12.5"
-                                       Foreground="{DynamicResource Brush.Info}" VerticalAlignment="Center"/>
-                            <Path x:Name="RowAutoCheck" Data="M 0 4 L 3 7 L 8.5 0.5" Visibility="Collapsed"
-                                  Stroke="{DynamicResource Brush.Primary}" StrokeThickness="1.8"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Margin="14,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Border>
-        </Popup>
+            <!-- 主题菜单：自绘 Popup（跟当前主题；StaysOpen=False 点外部自动关闭） -->
+            <Popup x:Name="ThemePopup" StaysOpen="False" AllowsTransparency="True"
+                   PlacementTarget="{Binding ElementName=BtnTheme}"
+                   Placement="Bottom" HorizontalOffset="-152" VerticalOffset="2">
+                <Border CornerRadius="8" MinWidth="196" Margin="8"
+                        Background="{DynamicResource Brush.CardBg}"
+                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                        Padding="5,4">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="14" ShadowDepth="2" Opacity="0.35"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <Button x:Name="RowLight" Style="{StaticResource ThemeMenuRow}" Tag="light" Click="ThemeItem_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="11" Height="11" Fill="#FBBF24"/>
+                                <TextBlock Text="浅色" Margin="10,0,0,0" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Info}" VerticalAlignment="Center"/>
+                                <Path x:Name="RowLightCheck" Data="M 0 4 L 3 7 L 8.5 0.5" Visibility="Collapsed"
+                                      Stroke="{DynamicResource Brush.Primary}" StrokeThickness="1.8"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Margin="14,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="RowDark" Style="{StaticResource ThemeMenuRow}" Tag="dark" Click="ThemeItem_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="11" Height="11" Fill="#6366F1"/>
+                                <TextBlock Text="深色" Margin="10,0,0,0" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Info}" VerticalAlignment="Center"/>
+                                <Path x:Name="RowDarkCheck" Data="M 0 4 L 3 7 L 8.5 0.5" Visibility="Collapsed"
+                                      Stroke="{DynamicResource Brush.Primary}" StrokeThickness="1.8"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Margin="14,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="RowAuto" Style="{StaticResource ThemeMenuRow}" Tag="auto" Click="ThemeItem_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="11" Height="11">
+                                    <Ellipse.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Offset="0.5" Color="#FBBF24"/>
+                                            <GradientStop Offset="0.5" Color="#6366F1"/>
+                                        </LinearGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <TextBlock Text="自动（跟随系统）" Margin="10,0,0,0" FontSize="12.5"
+                                           Foreground="{DynamicResource Brush.Info}" VerticalAlignment="Center"/>
+                                <Path x:Name="RowAutoCheck" Data="M 0 4 L 3 7 L 8.5 0.5" Visibility="Collapsed"
+                                      Stroke="{DynamicResource Brush.Primary}" StrokeThickness="1.8"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Margin="14,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Popup>
         </Grid>
     </Border>
 </Window>
