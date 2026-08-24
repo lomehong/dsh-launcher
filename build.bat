@@ -1,18 +1,31 @@
 @echo off
-rem Rebuild the launcher binaries from src\DshLauncher.cs.
-rem Needs the .NET Framework compiler (csc.exe), which ships with Windows 10/11.
-rem Builds dsh-launcher.exe; copy it to dsh一键启动.exe to use the Chinese name.
 setlocal
-set "CSC=%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-if not exist "%CSC%" set "CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe"
-if not exist "%CSC%" (
-    echo [ERROR] csc.exe not found.
-    exit /b 1
-)
-"%CSC%" /nologo /codepage:65001 /optimize+ /target:exe /out:dsh-launcher.exe /r:System.IO.Compression.FileSystem.dll src\DshLauncher.cs
+set CFG=%~1
+if "%CFG%"=="" set CFG=Release
+echo === Building DshLauncher CLI (%CFG%) ===
+dotnet publish src/DshLauncher.Cli/DshLauncher.Cli.csproj -c %CFG% -f net10.0-windows -r win-x64 --self-contained false -o "%~dp0dist\cli"
 if errorlevel 1 (
-    echo [ERROR] build failed.
-    exit /b 1
+  echo BUILD FAILED
+  exit /b 1
 )
-echo [OK] built dsh-launcher.exe
-echo To use the Chinese filename: copy /y dsh-launcher.exe dsh一键启动.exe
+copy /y "%~dp0dist\cli\dsh-launcher.exe" "%~dp0dsh-launcher.exe" >nul
+copy /y "%~dp0dist\cli\dsh-launcher.exe" "%~dp0dsh一键启动.exe" >nul
+copy /y "%~dp0dist\cli\dsh-launcher.dll" "%~dp0dsh-launcher.dll" >nul
+copy /y "%~dp0dist\cli\DshLauncher.Core.dll" "%~dp0DshLauncher.Core.dll" >nul
+copy /y "%~dp0dist\cli\dsh-launcher.deps.json" "%~dp0dsh-launcher.deps.json" >nul
+copy /y "%~dp0dist\cli\dsh-launcher.runtimeconfig.json" "%~dp0dsh-launcher.runtimeconfig.json" >nul
+
+echo === Building DshLauncher GUI (%CFG%) ===
+dotnet publish src/DshLauncher.Gui/DshLauncher.Gui.csproj -c %CFG% -f net10.0-windows -r win-x64 --self-contained false -o "%~dp0dist\gui"
+if errorlevel 1 (
+  echo BUILD FAILED
+  exit /b 1
+)
+copy /y "%~dp0dist\gui\dsh-launcher-gui.exe" "%~dp0dsh-launcher-gui.exe" >nul
+copy /y "%~dp0dist\gui\dsh-launcher-gui.dll" "%~dp0dsh-launcher-gui.dll" >nul
+copy /y "%~dp0dist\gui\dsh-launcher-gui.runtimeconfig.json" "%~dp0dsh-launcher-gui.runtimeconfig.json" >nul
+copy /y "%~dp0dist\gui\dsh-launcher-gui.deps.json" "%~dp0dsh-launcher-gui.deps.json" >nul
+copy /y "%~dp0src\DshLauncher.Gui\app.ico" "%~dp0app.ico" >nul
+copy /y "%~dp0src\DshLauncher.Gui\app.ico" "%~dp0dsh-launcher-gui.ico" >nul
+
+echo BUILD OK - CLI and GUI published.

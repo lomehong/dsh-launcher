@@ -1,0 +1,41 @@
+<Window x:Class="DshLauncher.Gui.Views.AddCustomPluginDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="添加自定义插件"
+        Width="560" Height="380"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource Brush.Bg}"
+        FontFamily="Microsoft YaHei UI">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="➕ 添加自定义插件" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="1" Text="输入 GitHub 仓库 URL 或 npm 包名，将作为新插件加入。需点主界面「保存更改」才能持久化。"
+                   TextWrapping="Wrap" Foreground="{DynamicResource Brush.Muted}" Margin="0,0,0,16"/>
+
+        <TextBlock Grid.Row="2" Text="输入:" Margin="0,0,0,4"/>
+        <TextBox x:Name="InputBox" Grid.Row="3" Padding="6" FontFamily="Consolas"
+                 TextChanged="InputBox_TextChanged"
+                 ToolTip="例:&#x0a;https://github.com/owner/repo&#x0a;https://github.com/owner/repo/tree/branch&#x0a;git@github.com:owner/repo.git&#x0a;owner/repo&#x0a;@scope/pkg-name"/>
+
+        <TextBlock x:Name="PreviewText" Grid.Row="4" Margin="0,10,0,0"
+                   FontFamily="Consolas" Foreground="{DynamicResource Brush.Primary}" TextWrapping="Wrap"/>
+        <TextBlock x:Name="ErrorText" Grid.Row="5" Margin="0,6,0,0"
+                   Foreground="{DynamicResource Brush.Error}" TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="取消" Padding="14,6" MinWidth="80" IsCancel="True" Margin="0,0,8,0"/>
+            <Button x:Name="BtnOk" Content="添加" Padding="14,6" MinWidth="80" IsDefault="True"
+                    Click="BtnOk_Click" IsEnabled="False"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,178 @@
+<UserControl x:Class="DshLauncher.Gui.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- 阶段行：图标 + 标题 + 徽章 -->
+        <Style x:Key="StageIcon" TargetType="Border">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.PrimaryDim}"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+        <Style x:Key="StageIconText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Primary}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="Badge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="BadgeText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Style="{StaticResource PageContainer}">
+
+            <!-- 欢迎横幅 -->
+            <Border Background="{DynamicResource Brush.Primary}" CornerRadius="12"
+                    Padding="20,18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="欢迎使用 dsh" Foreground="White"
+                               FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock Foreground="{DynamicResource Brush.PrimaryText}" FontSize="13" TextWrapping="Wrap"
+                               Text="自动完成便携 Node.js → dsh → 9 个默认插件 → dsh web 一键启动。点击下方任意步骤可单独执行。"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ① Node -->
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource StageIcon}" Margin="0,0,14,0">
+                        <TextBlock Style="{StaticResource StageIconText}" Text="⬢"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="便携 Node.js" FontSize="14" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Border Style="{StaticResource Badge}" x:Name="NodeBadge" Background="{DynamicResource Brush.BorderSoft}">
+                                <TextBlock x:Name="NodeBadgeText" Style="{StaticResource BadgeText}"
+                                           Foreground="{DynamicResource Brush.Muted}" Text="检测中…"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock x:Name="NodePathText" FontSize="12"
+                                   Foreground="{DynamicResource Brush.Muted}" Margin="0,3,0,0"
+                                   Text="—"/>
+                    </StackPanel>
+                    <Button x:Name="BtnRedownload" Grid.Column="2" Content="重新下载"
+                            VerticalAlignment="Center" Visibility="Collapsed"
+                            Click="BtnRedownload_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- ② dsh -->
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource StageIcon}" Margin="0,0,14,0">
+                        <TextBlock Style="{StaticResource StageIconText}" Text="⚡"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="dsh 运行时" FontSize="14" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Border Style="{StaticResource Badge}" x:Name="DshBadge" Background="{DynamicResource Brush.BorderSoft}">
+                                <TextBlock x:Name="DshBadgeText" Style="{StaticResource BadgeText}"
+                                           Foreground="{DynamicResource Brush.Muted}" Text="检测中…"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock x:Name="DshLatestText" FontSize="12"
+                                   Foreground="{DynamicResource Brush.Muted}" Margin="0,3,0,0" Text="—"/>
+                    </StackPanel>
+                    <Button x:Name="BtnUpdateDsh" Grid.Column="2" Content="检查更新"
+                            VerticalAlignment="Center" Visibility="Collapsed"
+                            Click="BtnUpdateDsh_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- ③ 插件 -->
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource StageIcon}" Margin="0,0,14,0">
+                        <TextBlock Style="{StaticResource StageIconText}" Text="▦"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="默认插件" FontSize="14" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Border Style="{StaticResource Badge}" x:Name="PluginsBadge" Background="{DynamicResource Brush.BorderSoft}">
+                                <TextBlock x:Name="PluginsBadgeText" Style="{StaticResource BadgeText}"
+                                           Foreground="{DynamicResource Brush.Muted}" Text="检测中…"/>
+                            </Border>
+                        </StackPanel>
+                        <ProgressBar x:Name="PluginsProgress" Height="6" Margin="0,8,0,0"
+                                     Minimum="0" Maximum="100" Value="0" Visibility="Collapsed"/>
+                    </StackPanel>
+                    <Button x:Name="BtnReinstallPlugins" Grid.Column="2" Content="重新检测"
+                            VerticalAlignment="Center" Visibility="Collapsed"
+                            Click="BtnReinstallPlugins_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- ④ dsh web -->
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource StageIcon}" Margin="0,0,14,0">
+                        <TextBlock Style="{StaticResource StageIconText}" Text="◎"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="dsh web 服务" FontSize="14" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Border Style="{StaticResource Badge}" x:Name="WebBadge" Background="{DynamicResource Brush.BorderSoft}">
+                                <TextBlock x:Name="WebBadgeText" Style="{StaticResource BadgeText}"
+                                           Foreground="{DynamicResource Brush.Muted}" Text="未启动"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock FontSize="12" Foreground="{DynamicResource Brush.Muted}"
+                                   Margin="0,3,0,0" Text="启动后自动打开 http://127.0.0.1:3080"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 一键操作 -->
+            <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="批量操作"/>
+                    <WrapPanel Margin="0,10,0,0">
+                        <Button x:Name="BtnFullSetup" Content="完整安装 / 更新"
+                                Style="{StaticResource BtnPrimary}" MinWidth="140"
+                                Click="BtnFullSetup_Click"/>
+                        <Button x:Name="BtnInstallOnly" Content="仅安装（不启动 web）"
+                                MinWidth="150" Margin="8,0,0,0"
+                                Click="BtnInstallOnly_Click"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="FullSetupStatus" FontSize="12"
+                               Foreground="{DynamicResource Brush.Muted}"
+                               Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

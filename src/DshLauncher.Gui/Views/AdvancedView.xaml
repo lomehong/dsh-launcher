@@ -1,0 +1,81 @@
+<UserControl x:Class="DshLauncher.Gui.Views.AdvancedView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="SectionBorder" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Brush.CardBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20,18"/>
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Style="{StaticResource PageContainer}">
+
+            <!-- 页头 -->
+            <TextBlock Text="高级" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,4"/>
+            <TextBlock Text="卸载与故障排查工具。" Foreground="{DynamicResource Brush.Muted}"
+                       FontSize="13" Margin="0,0,0,20"/>
+
+            <!-- 两列卡片 -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- 左：卸载 -->
+                <Border Grid.Column="0" Style="{StaticResource SectionBorder}" Margin="0,0,24,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Style="{StaticResource SectionTitle}" Text="卸载"/>
+                        <TextBlock Grid.Row="1" x:Name="UninstallSummary" Foreground="{DynamicResource Brush.Muted}"
+                                   TextWrapping="Wrap" Margin="0,0,0,12" FontSize="13"/>
+                        <CheckBox Grid.Row="2" x:Name="PurgeCheck" Content="同时清除 ~/.dsh 用户数据 (--purge)"
+                                  Margin="0,0,0,12"/>
+                        <Button Grid.Row="4" x:Name="BtnUninstall" Content="卸载" Style="{StaticResource BtnDanger}"
+                                Padding="18,9" MinWidth="100" HorizontalAlignment="Left"
+                                VerticalAlignment="Bottom" Click="BtnUninstall_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- 右：故障排查 -->
+                <Border Grid.Column="1" Style="{StaticResource SectionBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Style="{StaticResource SectionTitle}" Text="故障排查"/>
+                        <WrapPanel Grid.Row="1" Margin="0,4,0,0">
+                            <Button Content="📂 打开运行目录" Margin="0,0,10,10" Padding="12,7" Click="BtnOpenRuntime_Click"/>
+                            <Button Content="📂 打开日志目录" Margin="0,0,10,10" Padding="12,7" Click="BtnOpenLogs_Click"/>
+                            <Button Content="📋 复制诊断信息" Margin="0,0,10,10" Padding="12,7" Click="BtnCopyDiag_Click"/>
+                        </WrapPanel>
+                        <TextBlock Grid.Row="2" x:Name="DiagText" Margin="0,10,0,0"
+                                   FontFamily="Consolas" FontSize="11.5"
+                                   Foreground="{DynamicResource Brush.Muted}"
+                                   TextWrapping="Wrap"
+                                   Text="点击「复制诊断信息」生成可粘贴到 GitHub Issue 的诊断包"/>
+                    </Grid>
+                </Border>
+
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

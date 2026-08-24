@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DshLauncher.Gui</RootNamespace>
+    <AssemblyName>dsh-launcher-gui</AssemblyName>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.IO" />
+    <Using Include="System.Windows" />
+    <Using Include="System.Windows.Controls" />
+    <Using Include="System.Windows.Media" />
+    <Using Include="DshLauncher.Gui.Services" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DshLauncher.Core\DshLauncher.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="app.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

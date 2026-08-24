@@ -1,6 +1,62 @@
-# build residue and test dirs
-*.part
-_p*/
-node_modules/
-*.log
+# ========== .NET 构建产物 ==========
+# dotnet publish 输出（build.bat 的落点）
+dist/
+
+# 各项目编译中间产物
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+project.lock.json
+
+# 根目录发布的支撑文件（exe 同目录的运行时依赖，本地保留、不入库）
+# dsh-launcher.exe / dsh-launcher-gui.exe 本身也由 build.bat 重新生成
+/dsh-launcher.exe
+/dsh-launcher.dll
+/dsh-launcher.deps.json
+/dsh-launcher.runtimeconfig.json
+/dsh-launcher-gui.exe
+/dsh-launcher-gui.dll
+/dsh-launcher-gui.deps.json
+/dsh-launcher-gui.runtimeconfig.json
+/DshLauncher.Core.dll
+/DshLauncher.Core.pdb
+/dsh一键启动.exe
 *.exe.old
+
+# 根目录 ico 副本（build.bat 从 src/DshLauncher.Gui/app.ico 拷贝）
+/app.ico
+/dsh-launcher-gui.ico
+
+# ========== 运行时残留 ==========
+# 未完成的下载（断点续传保留在 %LOCALAPPDATA%，不入库）
+*.part
+
+# ========== Node 生态 ==========
+# 运行时在 %LOCALAPPDATA%\dsh-launcher，仓库内不应出现
+node_modules/
+
+# ========== 项目遗留 ==========
+# 早期调试用的私有草稿目录
+_p*/
+
+# ========== 编辑器 / IDE ==========
+.vs/
+.idea/
+*.sln.iml
+.vscode/
+
+# ========== 系统噪音 ==========
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+*.lnk
+.DS_Store
+*~
+
+# ========== AI 会话产物 ==========
+.omo/
